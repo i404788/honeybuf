@@ -1,24 +1,6 @@
 ## Serialization
-### Example:
-```ts
-@SerializableClass<E>()
-class E {
-    examplefield: number = 32
-    examplearray: number[] = [1, 2]
-    static _name = 'abc' // Unique name
-    static GetSerializables(): Map<string, Serializable>{
-        let map = new Map<string, Serializable>()
-        map.set('examplefield', new Integer({..args}))
-        map.set('examplearray', new Vector(new Integer({..args})))
-        return map
-    }
-}
-
-let interface = new Serializer(E)
-let object = new E()
-let serializedStream: Buffer = interface.Serialize(object)
-assert(object === interface.Deserialize(serializedStream))
-```
+### Examples
+See `/examples` folrder.
 
 ### Notes
 For asymetrical serialization we recommend creating your own `SerializableValue` implementation.
@@ -33,7 +15,7 @@ This library should mostly follow C++/C Little Endian binary representations, th
 
 Binary serialization can currently only be done if both parties have the class definitions, Dynamic serialization may be explored in later revisions
 
-If there is a undocumented discrepancy between this library and C++/C please file an issue with one of the maintainers 
+If there is a undocumented discrepancy between this library and C++/C please file an issue with one of the maintainers
 
 Varints have the same encoding as bitcoin-core's varints
 
