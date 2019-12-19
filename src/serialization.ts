@@ -30,10 +30,10 @@ const isSerializable = <T>(construct: SerializableConstructor<T> | Function): co
 }
 
 //#region Base Stream class
-class SerialStream {
+export class SerialStream {
     public constructor(
         public buffer: Buffer,
-        public cursor: number,
+        public cursor: number = 0, 
         public type?: ReadWriteMode
     ) { }
 
@@ -116,16 +116,32 @@ export abstract class SerializableValue<T> {
 
 //#region Value Implementations
 
+export class Integer extends SerializableValue<number> {
+    protected base: BigInteger
+    public constructor(protected args: { bits: number; unsigned?: boolean } = { bits: 256 }) {
+        super()
+        this.base = new BigInteger(args);
+    }
+
+    public Write(stream: SerialStream, value: number) {
+        this.base.Write(stream, BigInt(value))
+    }
+    
+    public Read(stream: SerialStream): number {
+        return Number(this.base.Read(stream))
+    }
+}
+
 /**
- * Serializes integers of arbitrary size
+ * Serializes Integers of arbitrary size
  * Note: while it accepts `number | bigint` in the Write-mode, it will always return a `bigint` in Read-mode
  */
-export class Integer extends SerializableValue<bigint> {
+export class BigInteger extends SerializableValue<bigint> {
     public constructor(protected args: { bits: number; unsigned?: boolean } = { bits: 256 }) {
         super()
     }
     public Write(stream: SerialStream, value: bigint) {
-        //if (isType(value, Number)) value = BigInt(value | 0);
+        if (isType(value, Number)) value = BigInt((value as unknown as number) | 0);
         if (!isType(value, BigInt))
             throw new Error(`BigInt Serializer: Bad type ${value}, '${typeof value}' !== 'bigint'`);
         stream.WriteInt(this.args.bits, value);
@@ -137,7 +153,7 @@ export class Integer extends SerializableValue<bigint> {
 }
 
 export class SingleBoolean extends SerializableValue<boolean> {
-    protected base = new Integer({bits: 8, unsigned: true})
+    protected base = new BigInteger({bits: 8, unsigned: true})
     public Write(stream: SerialStream, value: boolean, args?: {}) {
         this.base.Write(stream, BigInt(value))
     };
@@ -195,13 +211,13 @@ export class CharVector extends SerializableValue<string> {
 }
 
 export class BufferLike extends SerializableValue<ArrayBuffer | SharedArrayBuffer | Buffer> {
-    protected base = new Vector(new Integer({bits: 8, unsigned: true}));
+    protected base = new Vector(new BigInteger({bits: 8, unsigned: true}));
 
     public Write(stream: SerialStream, value: ArrayBuffer | SharedArrayBuffer | Buffer, args?: {}) {
         this.base.Write(stream, Array.from(Buffer.from(value)).map(x => BigInt(x)));
     };
     public Read (stream: SerialStream, args?: {}): Buffer {
-        return Buffer.from(this.base.Read(stream).map(x => x.toString(16)).join(), 'hex');
+        return Buffer.from(this.base.Read(stream).map(x => x.toString(16)).join(''), 'hex');
     }
 }
 
@@ -300,7 +316,7 @@ export class Serializer<T extends SerializableClass<T>> {
             if (value instanceof SerializableValue) {
                 // SerializableValue
                 oMap[key] = value.Read(stream)
-                console.log(oMap[key])
+                // console.log(oMap[key])
             } else if (isSerializable(value)) {
                 // ISerializable
                 const sObj = new Serializer(value)
