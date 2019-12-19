@@ -212,13 +212,14 @@ export class CharVector extends SerializableValue<string> {
 }
 
 export class BufferLike extends SerializableValue<ArrayBuffer | SharedArrayBuffer | Buffer> {
-    protected base = new Vector(new BigInteger({bits: 8, unsigned: true}));
 
     public Write(stream: SerialStream, value: ArrayBuffer | SharedArrayBuffer | Buffer, args?: {}) {
-        this.base.Write(stream, Array.from(Buffer.from(value)).map(x => BigInt(x)));
+        stream.WriteVarint(value.byteLength);
+        stream.WriteBytes(Buffer.from(value))
     };
     public Read (stream: SerialStream, args?: {}): Buffer {
-        return Buffer.from(this.base.Read(stream).map(x => x.toString(16)).join(''), 'hex');
+        const len = Number(stream.ReadVarint())
+        return stream.ReadBytes(len)
     }
 }
 
