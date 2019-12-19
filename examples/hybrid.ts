@@ -1,0 +1,41 @@
+import { staticImplements, Serializable, SerializableConstructor, CharVector, Integer, BigInteger, SerialStream } from "../src/serialization";
+
+// Note, using BigIntegers because javascript can't use 64bit uints with the 'number' type
+const uint8_t = new Integer({bits: 8, unsigned: true})
+const uint16_t = new Integer({bits: 16, unsigned: true})
+const uint64_t = new BigInteger({bits: 64, unsigned: true})
+const string = new CharVector()
+
+enum MsgType {
+    Driblet = 0,
+    Ping = 1,
+    Register = 2,
+    Goodbye = 3
+    //...
+}
+
+function createBin(){
+    let stream = new SerialStream(Buffer.alloc(0))
+    uint8_t.Write(stream, 1);
+    uint8_t.Write(stream, MsgType.Driblet);
+    uint16_t.Write(stream, 0xA0);
+    string.Write(stream, "12d")
+    uint64_t.Write(stream, 1576776392n)
+    string.Write(stream, '{"uid":"Ryan"}')
+    return stream.buffer
+}
+
+function decodeBin(buf: Buffer){
+    let stream = new SerialStream(buf)
+    const ver = uint8_t.Read(stream)
+    const type = uint8_t.Read(stream)
+    const ID = uint16_t.Read(stream)
+    const UID = string.Read(stream)
+    const timestmap = uint64_t.Read(stream)
+    const body = string.Read(stream)
+    console.log(ver, type, ID, UID.toString(), timestmap, body.toString())
+}
+
+const bin = createBin()
+console.log(bin)
+decodeBin(bin)
