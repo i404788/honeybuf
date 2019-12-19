@@ -1,0 +1,16 @@
+{
+  "name": "binary-serializer-ts",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "repository": "https://git.devdroplets.com/devdroplets/binary-serializer-ts",
+  "author": "i404788 <404788@student.fontys.nl>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "bigint-buffer": "^1.1.5",
+    "class-transformer": "^0.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.21"
+  }
+}
