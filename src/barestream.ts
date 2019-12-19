@@ -1,4 +1,4 @@
-import { BufferToBigInt, BigIntToBuffer, GetByteLength, n } from './utils'
+import { BufferToBigInt, BigIntToBuffer, GetByteLength } from './utils'
 
 export enum ReadWriteMode {
     Read,
@@ -39,21 +39,27 @@ export class SerialStream {
     public WriteVarint(len: bigint | number): void {
         this.CheckWriteProtection()
         if (typeof len === 'number') len = BigInt(len);
-        if (len < n(0)) throw new Error(`WriteVarint(): Can't have negative length (${len})`);
-        if (len > n(1) << n(64))
-            throw new Error(`WriteVarint(): Can't have length higher than ${n(2) **
-                n(64)} (${len})`);
+        if (len < 0n) throw new Error(`WriteVarint(): Can't have negative length (${len})`);
+        if (len > 1n << 64n)
+            throw new Error(`WriteVarint(): Can't have length higher than ${2n **
+                64n} (${len})`);
 
-        if (len < n(253))
-            // Less than 253 items
+        // <252
+        if (len < 253n)
             return this.WriteInt(8, len);
-        if (len === n(253))
-            // More than 252, 16-bit number for exact count
+        
+        // 253: more than 252 less than 2**16, 16-bit number
+        if (len > 253n && len < 2n ** 16n){
+            this.WriteInt(8, 253);
             return this.WriteInt(16, len);
-        if (len === n(254))
-            // More than 252, 32-bit number for exact count
+        }
+        // 254: more than 2**16-1, 32-bit number
+        if (len === 254n){
+            this.WriteInt(8, 254);
             return this.WriteInt(32, len);
-        // (has to be 255) More than 252, 64-bit number for exact count
+        }
+        // 255: More than 2**32-1, 64-bit number
+        this.WriteInt(8, 255);
         return this.WriteInt(64, len);
     }
 
@@ -71,15 +77,11 @@ export class SerialStream {
     public ReadVarint(): bigint {
         const n = this.ReadBytes(1)[0];
         if (n < 253)
-            // Less than 253 items
             return BigInt(n);
         if (n === 253)
-            // More than 252, 16-bit number for exact count
             return this.ReadInt(16, false);
         if (n === 254)
-            // More than 252, 32-bit number for exact count
             return this.ReadInt(32, false);
-        // (has to be 255) More than 252, 64-bit number for exact count
         return this.ReadInt(64, false);
     }
 }
