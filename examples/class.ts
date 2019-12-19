@@ -43,8 +43,9 @@ function calcOriginal(msg: Msg) {
 }
 
 const msg = new Msg()
-msg.ID = 0x3D
-msg.procVersion = 2
+msg.ID = 0x3DD
+msg.procVersion = 22
+msg.msgType = 10
 msg.body = "Changing the class so it's not even close to the default"
 console.log(msg)
 const ser = new Serializer(Msg);
