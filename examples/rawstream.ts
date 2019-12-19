@@ -1,5 +1,5 @@
-import { SerialStream } from "../src/serialization";
-
+import { SerialStream } from "../src/barestream";
+SerialStream
 
 enum MsgType {
     Driblet = 0,

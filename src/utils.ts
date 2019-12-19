@@ -11,7 +11,6 @@ export function GetByteLength(bits : number) : number {
   return Math.ceil(length)
 }
 
-
 // Big Endian is possible for potential future compatibility
 export function BigIntToBuffer(value: bigint | number, bits: number): Buffer {
   let bytes: number = GetByteLength(bits);

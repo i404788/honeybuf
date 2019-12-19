@@ -1,4 +1,5 @@
-import { staticImplements, Serializable, SerializableConstructor, CharVector, Serializer, Integer } from "../src/serialization";
+import { CharVector, Integer } from "../src/builtin-types";
+import { staticImplements, Serializable, SerializableConstructor, Serializer } from "../src/serializer";
 
 enum MsgType {
     Driblet = 0,
