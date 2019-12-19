@@ -2,22 +2,19 @@ import { toBigIntLE, toBufferLE } from "bigint-buffer";
 
 export const n = (num: number): bigint => BigInt(num)
 
+// FIXME: make logs optional?
+
 // Converts bit lengths into bytelength
 export function GetByteLength(bits : number) : number {
   let length = bits / 8
-  if (Math.round(length) !== length) throw new Error("Invalid bit length")
-  return length
+  if (Math.ceil(length) !== length) console.warn(`got a ${length}-byte int, using ${Math.ceil(length)} instead`)
+  return Math.ceil(length)
 }
 
 
 // Big Endian is possible for potential future compatibility
 export function BigIntToBuffer(value: bigint | number, bits: number): Buffer {
-  let bytes: number
-  try {
-    bytes = GetByteLength(bits);
-  } catch {
-    throw `BigIntToBuffer(): bits is not a multiple of 8, bit-packed bigints are not (yet) supported`;
-  }
+  let bytes: number = GetByteLength(bits);
   if (!((bytes & (bytes - 1)) == 0))
     console.warn(`BigIntToBuffer(): bytes not a power of 2 but instead ${bytes} bytes`);
   if (typeof value === "number") value = BigInt(value);

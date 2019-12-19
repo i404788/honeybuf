@@ -121,6 +121,7 @@ export class Integer extends SerializableValue<number> {
     public constructor(protected args: { bits: number; unsigned?: boolean } = { bits: 256 }) {
         super()
         this.base = new BigInteger(args);
+        if (this.args.bits > 52) throw new Error('Integers don\'t support higher than 52-bit, use BigIntegers instead')
     }
 
     public Write(stream: SerialStream, value: number) {

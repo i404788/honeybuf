@@ -24,7 +24,7 @@ class Msg {
         map.set('msgType',      new Integer({bits: 8, unsigned: true}))
         map.set('ID',           new Integer({bits: 16, unsigned: true}))
         map.set('bucketUID',    new CharVector())
-        map.set('timestamp',    new Integer({bits: 64, unsigned: true}))
+        map.set('timestamp',    new Integer({bits: 52, unsigned: true}))
         map.set('body',         new CharVector())
 
         return map

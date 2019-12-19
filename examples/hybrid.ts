@@ -3,7 +3,7 @@ import { staticImplements, Serializable, SerializableConstructor, CharVector, In
 // Note, using BigIntegers because javascript can't use 64bit uints with the 'number' type
 const uint8_t = new Integer({bits: 8, unsigned: true})
 const uint16_t = new Integer({bits: 16, unsigned: true})
-const uint64_t = new BigInteger({bits: 64, unsigned: true})
+const uint52_t = new Integer({bits: 52, unsigned: true})
 const string = new CharVector()
 
 enum MsgType {
@@ -20,7 +20,7 @@ function createBin(){
     uint8_t.Write(stream, MsgType.Driblet);
     uint16_t.Write(stream, 0xA0);
     string.Write(stream, "12d")
-    uint64_t.Write(stream, 1576776392n)
+    uint52_t.Write(stream, 1576776392)
     string.Write(stream, '{"uid":"Ryan"}')
     return stream.buffer
 }
@@ -31,7 +31,7 @@ function decodeBin(buf: Buffer){
     const type = uint8_t.Read(stream)
     const ID = uint16_t.Read(stream)
     const UID = string.Read(stream)
-    const timestmap = uint64_t.Read(stream)
+    const timestmap = uint52_t.Read(stream)
     const body = string.Read(stream)
     console.log(ver, type, ID, UID.toString(), timestmap, body.toString())
 }
