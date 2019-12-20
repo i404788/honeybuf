@@ -1,5 +1,6 @@
 import { SerializableValue, Unpacked } from "./serializer";
 import { SerialStream } from "./barestream";
+import { ByteToFloat16, Float16ToByte } from "./misc/float16";
 
 interface Type<T> {
     new(...args: any[]): T;
@@ -12,10 +13,6 @@ interface FunctionType<T> {
 const isType = <T>(value: any, type: Type<T> | FunctionType<T>): value is T => {
     return value.constructor === type
 }
-
-// const isISerializable = (value: any): value is SerializableClass<any> => {
-//     return value && value.constructor && value.constructor.GetSerializables;
-// }
 
 /**
  * Serializes Integers between (exclusive) 2^53 and -2^53 (aka 52-bit IEE754 int).
@@ -184,14 +181,14 @@ export class ReadCast<T extends SerializableValue<S>, S, R> extends Serializable
 export class Float extends SerializableValue<number> {
     public constructor(protected args: { bits: '16' | '32' | '64' } = { bits: '64' }) {
         super()
-        if (!['16','32','64'].includes(this.args.bits))
+        if (!['16', '32', '64'].includes(this.args.bits))
             throw new Error(`the bit length of [Float] ${this.args.bits} is invalid`)
     }
 
     public Write(stream: SerialStream, value: number, args?: {}) {
-        switch(this.args.bits){
+        switch (this.args.bits) {
             case '16': // TODO: check range?
-                stream.WriteInt(16, Float16.Float16ToByte(value))
+                stream.WriteInt(16, Float16ToByte(value))
                 break;
             case '32':
                 let tmp32 = new Float32Array(1)
@@ -209,10 +206,10 @@ export class Float extends SerializableValue<number> {
     }
 
     public Read(stream: SerialStream): number {
-        switch(this.args.bits) {
+        switch (this.args.bits) {
             case '16':
                 let bytes16 = Number(stream.ReadInt(16, true))
-                return Float16.ByteToFloat16(bytes16)
+                return ByteToFloat16(bytes16)
             case '32':
                 let bytes32 = stream.ReadBytes(4)
                 return new Float32Array(bytes32)[0]
@@ -223,77 +220,21 @@ export class Float extends SerializableValue<number> {
                 throw new Error('Read failed for [Float], contact maintainer')
         }
     }
-
 }
 
-class Float16{
-    public static ByteToFloat16(uint16:number){
-        let d = uint16;
-        let negative = ((d>>15) & 1) !=0;
-        let mask = 0b11111;
-        let exponent = (d >>10) & mask;
-        let significand = d & 0b1111111111;
-        if(exponent == 0 && significand == 0){
-            return negative ? -0:0;
-        }
-        if(exponent == mask){
-            if(significand == 0){
-                return negative? -Infinity: Infinity;
-            }
-            else{
-                return NaN;
-            }
-        }
-        let f= 0;
-        if(exponent == 0){
-            f = significand /512.0;
-        }
-        else{
-            f= (1.0 + significand / 1024.0);
-        }
-        return (negative? -1.0 :1.0) * Math.pow(2,exponent-15) * f; 
-    }
-    public static Float16ToByte(float16:number):number{
-        let f = float16;
-        if(isNaN(f)) return 0b0111110000000001;
-        if(1/f === -Infinity) return 0b1000000000000000;
-        if(f === 0) return 0;
-        if(f === -Infinity) return 0b1111110000000000;
-        if(f === Infinity) return  0b0111110000000000;
-        let negative = f < 0;
-        f= Math.abs(f);
-        let fe = Math.floor(f);
-        let e= 0;
-        let si = 0;
-        if(fe >0){
-            while(fe >0){
-                e++;
-                fe = fe >> 1;
-            }
-            e+=14;
-            let em = Math.pow(2,e-15);
-            let s = f/ em -1.0;
-            si = Math.round(s *1024);
-        }
-        else{
-            let fi = f * (1<<15);
-            fe = Math.floor(fi);
-            if(fe >0){
-                while (fe > 0) {
-                    e++;
-                    fe = fe >> 1;
-                }
-                e--;
-            }
-            if(e == 0){
-                si = Math.round(fi *512);
-            }
-            else{
-                let em = 1<<e;
-                let s= fi/em -1.0;
-                si = Math.round(s *1024);
-            }
-        }
-        return ((e<<10) + si) + (negative? 1<<15: 0);
-    }
-}
+
+// TODO: Create an inline proxy serializable value
+// type MapBase = { [key: string]: number | string }
+// export class Map extends SerializableValue<MapBase> {
+//     Write(stream: SerialStream, value: MapBase): void {
+//         let keys = Object.keys(value)
+//         stream.WriteVarint(keys.length)
+//         for (const key of keys) {
+//             if (value instanceof SerializableValue){
+//             }
+//         }
+//     }
+//     Read(stream: SerialStream): MapBase {
+//         throw new Error("Method not implemented.");
+//     }
+// }

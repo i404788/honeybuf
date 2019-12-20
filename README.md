@@ -26,3 +26,7 @@ Varints have the same encoding as bitcoin-core's varints
   * Provides a wrapper on bigint-buffer which enables signed integer serialization
 
 
+
+
+## TODO
+* Check out `// import { Serializer } from "v8"; new Serializer().`

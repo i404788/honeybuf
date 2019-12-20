@@ -8,7 +8,8 @@
   "private": true,
   "dependencies": {
     "bigint-buffer": "^1.1.5",
-    "class-transformer": "^0.2.3"
+    "class-transformer": "^0.2.3",
+    "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
     "@types/node": "^12.12.21"
