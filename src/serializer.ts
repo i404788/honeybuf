@@ -80,22 +80,6 @@ export class Serializer<T extends SelfAwareClass> {
                 }
             }
         }
-        // // console.log(`Read(${this.type._name}), ${sMap.size}`)
-        // sMap.forEach((value, key) => {
-        //     // const value = sMap.get(key)
-        //     if (value instanceof SerializableValue) {
-        //         // SerializableValue
-        //         oMap[key] = value.Read(stream)
-        //         // console.log(oMap[key])
-        //     } else if (isSerializable(value)) {
-        //         // ISerializable
-        //         const sObj = new Serializer(value)
-        //         // Recurse into child object
-        //         oMap[key] = sObj._Deserialize(stream, callees)
-        //     } else {
-        //         throw new Error(`${callees.join('/')}/${key}: ${value} is not a Serializable object (not ISerializable<any> | SerializableValue)`);
-        //     }
-        // })
         return plainToClass(this.type, oMap)
     }
 
@@ -110,17 +94,13 @@ export class Serializer<T extends SelfAwareClass> {
         if (callees.includes(classSymbol))
             throw new Error(`Possible recursion in serialization, please evaluate`);
         callees.push(classSymbol);
-        // console.log(object.constructor._name);
-
-        // const sMap = object.constructor.GetSerializables();
         
         const sKeys = Object.getOwnPropertyNames(this.model)
         for (const iterator of sKeys) {
             let x = Reflect.getMetadata(SerializerKey, this.type.prototype, iterator)
-            console.log(x, iterator, )
+            // console.log(x, iterator)
             if (x) {
                 if (!object.hasOwnProperty(iterator)) throw new Error(`Field ${iterator} doesn't exist on ${(object.constructor as any)._name}`);
-                // let val = sMap.get(iterator);
                 if (x instanceof SerializableValue) {
                     // SerializableValue
                     x.Write(stream, object[iterator])
@@ -135,23 +115,6 @@ export class Serializer<T extends SelfAwareClass> {
                 }
             }
         }
-        // // console.log(`Write(${object.constructor._name}), ${sMap.size}`)
-        // sMap.forEach((val, iterator) => {
-        //     if (!object.hasOwnProperty(iterator)) throw new Error(`Field ${iterator} doesn't exist on ${(object.constructor as any)._name}`);
-        //     // let val = sMap.get(iterator);
-        //     if (val instanceof SerializableValue) {
-        //         // SerializableValue
-        //         val.Write(stream, object[iterator])
-        //     } else {
-        //         if (isSerializable(val)) {
-        //             // ISerializable
-        //             const serClass = new Serializer(val);
-        //             serClass._Serialize(stream, val, callees)
-        //         } else {
-        //             throw new Error(`${callees.join('/')}/$${iterator}: ${val} is not a Serializable object (not ISerializable<any> | SerializableValue)`);
-        //         }
-        //     }
-        // })
         return stream.buffer;
     }
 }
