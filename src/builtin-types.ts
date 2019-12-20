@@ -1,4 +1,4 @@
-import { SerializableValue, Unpacked } from "./serializer";
+import { Serializable, Unpacked } from "./serializer";
 import { SerialStream } from "./barestream";
 import { ByteToFloat16, Float16ToByte } from "./misc/float16";
 
@@ -18,7 +18,7 @@ const isType = <T>(value: any, type: Type<T> | FunctionType<T>): value is T => {
  * Serializes Integers between (exclusive) 2^53 and -2^53 (aka 52-bit IEE754 int).
  * 
  */
-export class Integer extends SerializableValue<number> {
+export class Integer extends Serializable<number> {
     protected base: BigInteger
     public constructor(protected args: { bits: number; unsigned?: boolean } = { bits: 256 }) {
         super()
@@ -38,7 +38,7 @@ export class Integer extends SerializableValue<number> {
 /**
  * Serializes Integers of arbitrary size using tc39 BigInt
  */
-export class BigInteger extends SerializableValue<bigint> {
+export class BigInteger extends Serializable<bigint> {
     public constructor(protected args: { bits: number; unsigned?: boolean } = { bits: 256 }) {
         super()
     }
@@ -57,7 +57,7 @@ export class BigInteger extends SerializableValue<bigint> {
 /**
  * Transmits a signle boolean (note: takes up whole byte)
  */
-export class SingleBoolean extends SerializableValue<boolean> {
+export class SingleBoolean extends Serializable<boolean> {
     protected base = new BigInteger({ bits: 8, unsigned: true })
     public Write(stream: SerialStream, value: boolean, args?: {}) {
         if (!isType(value, Boolean))
@@ -75,7 +75,7 @@ export class SingleBoolean extends SerializableValue<boolean> {
  * Serializes a dense variably-sized boolean array
  * size: |^log256(n)^| + |^n/8^| + 1
  */
-export class DenseBooleanArray extends SerializableValue<boolean[]> {
+export class DenseBooleanArray extends Serializable<boolean[]> {
     public Write(stream: SerialStream, value: boolean[], args?: {}) {
         if (typeof value === 'boolean') value = [value];
         stream.WriteVarint(value.length);
@@ -107,7 +107,7 @@ export class DenseBooleanArray extends SerializableValue<boolean[]> {
 /**
  * Serializes a variable-length string (utf-8)
  */
-export class CharVector extends SerializableValue<string> {
+export class CharVector extends Serializable<string> {
     protected base = new BufferLike();
     public Write(stream: SerialStream, value: string, args?: {}) {
         this.base.Write(stream, Buffer.from(value));
@@ -120,7 +120,7 @@ export class CharVector extends SerializableValue<string> {
 /**
  * Serializes a buffer-like object (ArrayBuffer, SharedBuffer, Buffer, Uint8Array)
  */
-export class BufferLike extends SerializableValue<ArrayBuffer | SharedArrayBuffer | Buffer | Uint8Array> {
+export class BufferLike extends Serializable<ArrayBuffer | SharedArrayBuffer | Buffer | Uint8Array> {
     public Write(stream: SerialStream, value: Uint8Array | ArrayBuffer | SharedArrayBuffer | Buffer, args?: {}) {
         stream.WriteVarint(value.byteLength);
         stream.WriteBytes(Buffer.from(value))
@@ -139,7 +139,7 @@ export class BufferLike extends SerializableValue<ArrayBuffer | SharedArrayBuffe
  * 
  * For byte-like sequences please use the `BufferLike` type
  */
-export class Vector<T extends SerializableValue<any>> extends SerializableValue<Unpacked<T>[]> {
+export class Vector<T extends Serializable<any>> extends Serializable<Unpacked<T>[]> {
     public constructor(protected type: T) {
         super()
     }
@@ -165,7 +165,7 @@ export class Vector<T extends SerializableValue<any>> extends SerializableValue<
  * 
  * **WARNING:** this is meant for prototyping, don't use this in production
  */
-export class ReadCast<T extends SerializableValue<S>, S, R> extends SerializableValue<R> {
+export class ReadCast<T extends Serializable<S>, S, R> extends Serializable<R> {
     public constructor(protected type: T, private readCaster: (object: S) => R) {
         super();
     }
@@ -177,8 +177,33 @@ export class ReadCast<T extends SerializableValue<S>, S, R> extends Serializable
     };
 }
 
+type Un<T> = Unpacked<T>
+export class MapLike<T extends Serializable<any>, S extends Serializable<any>> 
+                extends Serializable<Map<Un<T>,Un<S>>> {
+    public constructor(protected keytype: T, protected valuetype: S) {
+        super()
+    }
+    public Write(stream: SerialStream, value: Map<Un<T>, Un<S>>): void {
+        const len = value.size
+        stream.WriteVarint(len)
+        for (const entry of value.entries()) {
+            this.keytype.Write(stream, entry[0])
+            this.valuetype.Write(stream, entry[1])
+        }
+    }    
+    public Read(stream: SerialStream): Map<Un<T>, Un<S>> {
+        const len = stream.ReadVarint()
+        const map = new Map<Un<T>, Un<S>>()
+        for (let i = 0; i < len; i++) {
+            const key = this.keytype.Read(stream)
+            const value = this.valuetype.Read(stream)
+            map.set(key, value)
+        }
+        return map
+    }
+}
 
-export class Float extends SerializableValue<number> {
+export class Float extends Serializable<number> {
     public constructor(protected args: { bits: '16' | '32' | '64' } = { bits: '64' }) {
         super()
         if (!['16', '32', '64'].includes(this.args.bits))

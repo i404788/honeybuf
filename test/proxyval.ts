@@ -1,21 +1,21 @@
 
 import { Integer } from "../src/builtin-types";
-import { SerializableValue } from "../src/serializer";
+import { Serializable } from "../src/serializer";
 
 // Can't be used as decorator, because properties can't have things other than get()/set()
 export type Proxy<T> = {
     get(): T;
     set(value: T): void;
-    getType(): SerializableValue<T>;
-    setType(type: SerializableValue<T>): void;
+    getType(): Serializable<T>;
+    setType(type: Serializable<T>): void;
 }
 
-export function proxyifyValue<T>(t: T, s: SerializableValue<T>): Proxy<T> {
+export function proxyifyValue<T>(t: T, s: Serializable<T>): Proxy<T> {
     return {
         get: () => t,
         set: (value: T) => t = value,
         getType: () => s,
-        setType: (type: SerializableValue<T>) => s = type
+        setType: (type: Serializable<T>) => s = type
     }
 }
 

@@ -9,7 +9,7 @@ const isSerializable = (construct: Function): boolean => {
     return Reflect.getMetadata(SerializerKey, construct)
 }
 
-export abstract class SerializableValue<T> {
+export abstract class Serializable<T> {
     abstract Write(stream: SerialStream, value: T, args?: {}): void;
     abstract Read(stream: SerialStream, args?: {}): T;
 }
@@ -30,14 +30,14 @@ export interface SelfAwareClass{
     [key: string]: any
 }
 
-export function Serialized<S>(s: SerializableValue<S>){
+export function Serialized<S>(s: Serializable<S>){
     return <T>(target: T, propertyKey: string | symbol) => {
         // TODO: should check `S.constructor == target[propertyKey].constructor`, but is impossible atm
         Reflect.metadata(SerializerKey, s)(target, propertyKey)
     }
 }
 
-export type Unpacked<T> = T extends SerializableValue<infer R> ? R : T;
+export type Unpacked<T> = T extends Serializable<infer R> ? R : T;
 
 export class Serializer<T extends SelfAwareClass> {
     protected model: T = Reflect.construct(this.type, [])
@@ -66,7 +66,7 @@ export class Serializer<T extends SelfAwareClass> {
             let x = Reflect.getMetadata(SerializerKey, this.type.prototype, iterator)
             console.log(x)
             if (x) {
-                if (x instanceof SerializableValue) {
+                if (x instanceof Serializable) {
                     // SerializableValue
                     oMap[iterator] = x.Read(stream)
                     // console.log(oMap[key])
@@ -101,7 +101,7 @@ export class Serializer<T extends SelfAwareClass> {
             // console.log(x, iterator)
             if (x) {
                 if (!object.hasOwnProperty(iterator)) throw new Error(`Field ${iterator} doesn't exist on ${(object.constructor as any)._name}`);
-                if (x instanceof SerializableValue) {
+                if (x instanceof Serializable) {
                     // SerializableValue
                     x.Write(stream, object[iterator])
                 } else {
