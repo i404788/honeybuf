@@ -13,7 +13,6 @@ export default class BloomFilter {
     bits: number;
     k: number;
     filter: bigint = 0n;
-    seed: bigint = 0x1234567890n
     popcnt: (v: bigint) => bigint
 
     // k is number of hashes per item
@@ -24,11 +23,11 @@ export default class BloomFilter {
     }
 
     public add(v: string | Buffer) {
-        this.filter |= BloomFilter.itemHash(v, this.bits, this.k, this.seed)
+        this.filter |= BloomFilter.itemHash(v, this.bits, this.k)
     }
 
     public test(v: string | Buffer) {
-        let l = BloomFilter.itemHash(v, this.bits, this.k, this.seed)
+        let l = BloomFilter.itemHash(v, this.bits, this.k)
         return Number(this.popcnt(this.filter & l)) >= this.k
     }
 
@@ -49,11 +48,11 @@ export default class BloomFilter {
         return - (this.bits / this.k) * Math.log(1 - (Number(this.popcnt(this.filter)) / this.bits));
     }
 
-    public static itemHash(v: string | Buffer, bits: number, k: number, seed: bigint = 0xf23456789n): bigint {
+    public static itemHash(v: string | Buffer, bits: number, k: number): bigint {
         let o = 0n
         let m = BigInt(bits)
         let buf = typeof v === 'string' ? Buffer.from(v) : v
-        let a = BigInt(XXH64(buf, 0n))
+        let a = XXH64(buf, 0n)
         if (a < 0n) a *= -1n
         a ^= 0x6740bca37be0516dn
 

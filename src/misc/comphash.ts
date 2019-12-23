@@ -12,6 +12,7 @@
 */
 import "reflect-metadata";
 import BloomFilter from "./bloom";
+import { toBufferLE } from "bigint-buffer";
 
 interface Component { 
     constructor: any
@@ -49,5 +50,5 @@ export function CollectionHash<T extends Component>(obj: T[], debugMode = 0): Bu
         const major: string = Reflect.getMetadata(VersionKey, it.constructor)
         filter.add(`${cname}${major}`)
     }
-    return Buffer.from(filter.filter.toString(16).padStart(bits/4, '0'), 'hex')
+    return toBufferLE(filter.filter, bits/8)
 }
