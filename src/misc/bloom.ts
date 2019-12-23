@@ -1,9 +1,21 @@
 import { XXH64 } from "xxh3-ts";
 import { fastpopcnt } from "bigint-popcnt";
+import { toBigIntLE, toBufferLE } from "bigint-buffer";
 
 const mask64 = ((1n << 64n)-1n)
 function Rotl64(a: bigint, n: bigint) {
     return (a << n) | (a >> (64n - n))
+}
+
+// From perspective of `this`
+export enum FilterComparison {
+    Incompatible = -0xff,
+    None = -1,
+    Equal = 0,
+    Larger = 1,
+    Smaller = 2,
+    // The amount of elements are the same, but some of the elements are different
+    Inequal = 3
 }
 
 /**
@@ -28,14 +40,18 @@ export default class BloomFilter {
 
     public test(v: string | Buffer) {
         let l = BloomFilter.itemHash(v, this.bits, this.k)
-        return Number(this.popcnt(this.filter & l)) >= this.k
+        return (this.filter & l) === l
     }
 
-    public compare(bloom: BloomFilter) {
-        if (bloom.k !== this.k || bloom.bits !== this.bits) return -2;
+    public compare(bloom: BloomFilter): FilterComparison {
+        if (bloom.k !== this.k || bloom.bits !== this.bits) return -0xff;
         if (this.filter === bloom.filter) return 0
-        if (this.filter > bloom.filter) return 1
-        else return -1
+        const lsize = this.size()
+        const rsize = bloom.size()
+        if (lsize > rsize) return 2
+        else if (lsize < rsize) return -2
+        else return 1
+
     }
 
     public union(bloom: BloomFilter) {
@@ -46,6 +62,18 @@ export default class BloomFilter {
     // Estimated cardinality.
     public size() {
         return - (this.bits / this.k) * Math.log(1 - (Number(this.popcnt(this.filter)) / this.bits));
+    }
+
+    public static fromBuffer(buf: Buffer): BloomFilter {
+        const k = toBigIntLE(buf.slice(0, 2))
+        const ofilter = toBigIntLE(buf.slice(2))
+        const filter = new BloomFilter((buf.byteLength-2) * 8, Number(k))
+        filter.filter = ofilter
+        return filter
+    }
+
+    public toBuffer() {
+        return Buffer.concat([toBufferLE(BigInt(this.k), 2), toBufferLE(this.filter, Math.ceil(this.bits/8))])
     }
 
     public static itemHash(v: string | Buffer, bits: number, k: number): bigint {

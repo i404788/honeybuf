@@ -4,8 +4,9 @@ import { SerialStream, ReadWriteMode } from "./barestream";
 
 export const SerializerKey = Symbol('SerializerType')
 export const SelfSerialized = Symbol('SerializedClass')
+export const PluginKey = Symbol('Plugins')
 
-const isSerializable = (construct: Function): boolean => {
+const isSerializableClass = (construct: Function): boolean => {
     return Reflect.getMetadata(SerializerKey, construct)
 }
 
@@ -15,25 +16,53 @@ export abstract class Serializable<T> {
 }
 
 export function staticImplements<T>() {
-    return <U extends T>(constructor: U) => { 
+    return <U extends T>(constructor: U) => {
         Reflect.metadata(SerializerKey, Symbol('UniqueSerializationID'))(constructor as unknown as Function)
-        constructor 
+        constructor
     };
 }
 
-export function SerializableClass (constructor: Function) {
+export function SerializableClass(constructor: Function) {
     Reflect.metadata(SerializerKey, Symbol('UniqueSerializationID'))(constructor)
 }
 
-export interface SelfAwareClass{
+export interface SelfAwareClass {
     constructor: ObjectConstructor | Function;
     [key: string]: any
 }
 
-export function Serialized<S>(s: Serializable<S>){
+export function Serialized<S>(s: Serializable<S>) {
     return <T>(target: T, propertyKey: string | symbol) => {
         // TODO: should check `S.constructor == target[propertyKey].constructor`, but is impossible atm
         Reflect.metadata(SerializerKey, s)(target, propertyKey)
+    }
+}
+
+export interface Plugin {
+    onInitialize?<T extends SelfAwareClass>(ref: Serializer<T>, type: Constructor<T>, model: SelfAwareClass): void;
+    onDeserializeStart?(stream: SerialStream): void
+    onDeserializeEnd?(stream: SerialStream): void
+    onDeserializeClass?(stream: SerialStream, obj: any): void
+    onDeserializeValue?(stream: SerialStream, obj: Serializable<any>): void;
+    onSerializeStart?(stream: SerialStream): void
+    onSerializeEnd?(stream: SerialStream): void
+    onSerializeClass?(stream: SerialStream, obj: any): void
+    onSerializeValue?(stream: SerialStream, obj: Serializable<any>): void
+}
+
+export abstract class Plugin {
+    public call<A extends any[], R>(func: ((this: Plugin, ...args: A) => R) | undefined, args: A): R | undefined {
+        if (func) return func.apply(this, args)
+        return undefined
+    }
+}
+
+export function AddPlugin<T extends Plugin, A extends any[]>(p: StrictConstructor<T, A>, args: ConstructorParameters<StrictConstructor<T, A>>) {
+    return function addPlugin(constructor: Function) {
+        let plugins: StrictConstructor<any, any>[] = Reflect.getMetadata(PluginKey, [constructor, args])
+        if (!plugins) plugins = []
+        plugins.push(p)
+        Reflect.metadata(PluginKey, plugins)(constructor)
     }
 }
 
@@ -41,12 +70,20 @@ export type Unpacked<T> = T extends Serializable<infer R> ? R : T;
 
 export class Serializer<T extends SelfAwareClass> {
     protected model: T = Reflect.construct(this.type, [])
+    protected plugins: Plugin[] = []
 
-    public constructor(private type: {new(...args: any[]): T; }) {
-        if (!isSerializable(type))
+    public constructor(private type: Constructor<T>) {
+        let pluginTypes: [Constructor<Plugin>, any[]][] = Reflect.getMetadata(PluginKey, this.type);
+        if (pluginTypes)
+            this.plugins = pluginTypes.map(x => new x[0](...x[1]))
+
+        this.plugins.forEach(x => x.call(x.onInitialize, [this, this.type, this.model]));
+
+
+        if (!isSerializableClass(type))
             throw new Error(`Type ${
                 String(this.type.name)
-                } doesn't implement ISerializableStatic`);
+                } doesn't implement SerializableClass`);
     }
 
     public Deserialize(stream: Buffer): T {
@@ -54,6 +91,8 @@ export class Serializer<T extends SelfAwareClass> {
     }
 
     public _Deserialize(stream: SerialStream, callees: (string | symbol)[] = []): T {
+        this.plugins.forEach(x => x.call(x.onDeserializeStart, [stream]));
+
         // Run checks
         let classSymbol = Reflect.getMetadata(SerializerKey, this.type);
         if (callees.includes(classSymbol))
@@ -67,11 +106,12 @@ export class Serializer<T extends SelfAwareClass> {
             console.log(x)
             if (x) {
                 if (x instanceof Serializable) {
+                    this.plugins.forEach(z => z.call(z.onDeserializeValue, [stream, x]));
                     // SerializableValue
                     oMap[iterator] = x.Read(stream)
                     // console.log(oMap[key])
-                } else if (isSerializable(x)) {
-                    // ISerializable
+                } else if (isSerializableClass(x)) {
+                    this.plugins.forEach(z => z.call(z.onDeserializeClass, [stream, x]));
                     const sObj = new Serializer(x)
                     // Recurse into child object
                     oMap[iterator] = sObj._Deserialize(stream, callees)
@@ -80,6 +120,7 @@ export class Serializer<T extends SelfAwareClass> {
                 }
             }
         }
+        this.plugins.forEach(x => x.call(x.onDeserializeEnd, [stream]));
         return plainToClass(this.type, oMap)
     }
 
@@ -89,12 +130,15 @@ export class Serializer<T extends SelfAwareClass> {
 
     public _Serialize(stream: SerialStream, object: T, callees: (symbol | string)[] = []): Buffer {
         // Run checks
-        if (!isSerializable(object.constructor)) throw new Error(`${object} isn't Serializable at [${callees}]`)
+        if (!isSerializableClass(object.constructor)) throw new Error(`${object} isn't Serializable at [${callees}]`)
+
+        this.plugins.forEach(x => x.call(x.onSerializeStart, [stream]));
+
         let classSymbol = Reflect.getMetadata(SerializerKey, object.constructor);
         if (callees.includes(classSymbol))
             throw new Error(`Possible recursion in serialization, please evaluate`);
         callees.push(classSymbol);
-        
+
         const sKeys = Object.getOwnPropertyNames(this.model)
         for (const iterator of sKeys) {
             let x = Reflect.getMetadata(SerializerKey, this.type.prototype, iterator)
@@ -103,18 +147,18 @@ export class Serializer<T extends SelfAwareClass> {
                 if (!object.hasOwnProperty(iterator)) throw new Error(`Field ${iterator} doesn't exist on ${(object.constructor as any)._name}`);
                 if (x instanceof Serializable) {
                     // SerializableValue
+                    this.plugins.forEach(z => z.call(z.onSerializeValue, [stream, x]));
                     x.Write(stream, object[iterator])
+                } else if (isSerializableClass(x)) {
+                    this.plugins.forEach(z => z.call(z.onSerializeClass, [stream, x]));
+                    const serClass = new Serializer(x);
+                    serClass._Serialize(stream, x, callees)
                 } else {
-                    if (isSerializable(x)) {
-                        // ISerializable
-                        const serClass = new Serializer(x);
-                        serClass._Serialize(stream, x, callees)
-                    } else {
-                        throw new Error(`${callees.join('/')}/$${iterator}: ${x} is not a Serializable object (not ISerializable<any> | SerializableValue)`);
-                    }
+                    throw new Error(`${callees.join('/')}/$${iterator}: ${x} is not a Serializable object (not ISerializable<any> | SerializableValue)`);
                 }
             }
         }
+        this.plugins.forEach(z => z.call(z.onSerializeEnd, [stream]));
         return stream.buffer;
     }
 }
