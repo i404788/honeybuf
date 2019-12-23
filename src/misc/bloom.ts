@@ -32,14 +32,14 @@ export default class BloomFilter {
     }
 
     public compare(bloom: BloomFilter) {
-        if (bloom.k !== this.k || bloom.bits !== this.bits || bloom.seed !== this.seed) return -2;
+        if (bloom.k !== this.k || bloom.bits !== this.bits) return -2;
         if (this.filter === bloom.filter) return 0
         if (this.filter > bloom.filter) return 1
         else return -1
     }
 
     public union(bloom: BloomFilter) {
-        if (bloom.k !== this.k || bloom.bits !== this.bits || bloom.seed !== this.seed) throw new Error('Cannot join bloomfilters, parameters incompatible.')
+        if (bloom.k !== this.k || bloom.bits !== this.bits) throw new Error('Cannot join bloomfilters, parameters incompatible.')
         this.filter |= bloom.filter
     }
 
