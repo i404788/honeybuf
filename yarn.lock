@@ -14,6 +14,11 @@ bigint-buffer@^1.1.5:
   dependencies:
     bindings "^1.3.0"
 
+bigint-popcnt@1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/bigint-popcnt/-/bigint-popcnt-1.0.1.tgz#fb338561143f6bc82897e04d4197d65ccb815050"
+  integrity sha512-M5C8W/LDasDy5u9Vg0AePC7J00jRI1AT4XScSMd64Ira0I4DhZCSXc9/jHI5LCk9Csz8iQoXHmaA04ROoDbGJA==
+
 bindings@^1.3.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.5.0.tgz#10353c9e945334bc0511a6d90b38fbc7c9c504df"
@@ -35,3 +40,8 @@ reflect-metadata@^0.1.13:
   version "0.1.13"
   resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.13.tgz#67ae3ca57c972a2aa1642b10fe363fe32d49dc08"
   integrity sha512-Ts1Y/anZELhSsjMcU605fU9RE4Oi3p5ORujwbIKXfWa+0Zxs510Qrmrce5/Jowq3cHSZSJqBjypxmHarc+vEWg==
+
+xxh3-ts@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/xxh3-ts/-/xxh3-ts-1.0.2.tgz#b46100f6790886153e6b9644eb11db4f98dc878f"
+  integrity sha512-q16q6Wq/HQrHj+HoBbhIPBVKS27r85AqlLMAVoP631m+QOX0EH2IDA0PtdOn3fwY79EGpS80oTZtf/NhrI8Yrg==
