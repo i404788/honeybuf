@@ -57,11 +57,13 @@ export abstract class Plugin {
     }
 }
 
+type PluginCollection = [Constructor<Plugin>, any[]][]
+
 export function AddPlugin<T extends Plugin, A extends any[]>(p: StrictConstructor<T, A>, args: ConstructorParameters<StrictConstructor<T, A>>) {
     return function addPlugin(constructor: Function) {
-        let plugins: StrictConstructor<any, any>[] = Reflect.getMetadata(PluginKey, [constructor, args])
+        let plugins: PluginCollection = Reflect.getMetadata(PluginKey, constructor)
         if (!plugins) plugins = []
-        plugins.push(p)
+        plugins.push([p, args])
         Reflect.metadata(PluginKey, plugins)(constructor)
     }
 }
@@ -73,7 +75,7 @@ export class Serializer<T extends SelfAwareClass> {
     protected plugins: Plugin[] = []
 
     public constructor(private type: Constructor<T>) {
-        let pluginTypes: [Constructor<Plugin>, any[]][] = Reflect.getMetadata(PluginKey, this.type);
+        let pluginTypes: PluginCollection = Reflect.getMetadata(PluginKey, this.type);
         if (pluginTypes)
             this.plugins = pluginTypes.map(x => new x[0](...x[1]))
 
@@ -103,7 +105,7 @@ export class Serializer<T extends SelfAwareClass> {
         const sKeys = Object.getOwnPropertyNames(this.model)
         for (const iterator of sKeys) {
             let x = Reflect.getMetadata(SerializerKey, this.type.prototype, iterator)
-            console.log(x)
+            // console.log(x)
             if (x) {
                 if (x instanceof Serializable) {
                     this.plugins.forEach(z => z.call(z.onDeserializeValue, [stream, x]));

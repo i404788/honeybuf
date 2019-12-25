@@ -44,13 +44,13 @@ export default class BloomFilter {
     }
 
     public compare(bloom: BloomFilter): FilterComparison {
-        if (bloom.k !== this.k || bloom.bits !== this.bits) return -0xff;
-        if (this.filter === bloom.filter) return 0
+        if (bloom.k !== this.k || bloom.bits !== this.bits) return FilterComparison.Incompatible;
+        if (this.filter === bloom.filter) return FilterComparison.Equal
         const lsize = this.size()
         const rsize = bloom.size()
-        if (lsize > rsize) return 2
-        else if (lsize < rsize) return -2
-        else return 1
+        if (lsize > rsize) return FilterComparison.Larger
+        else if (lsize < rsize) return FilterComparison.Smaller
+        else return FilterComparison.Inequal
 
     }
 

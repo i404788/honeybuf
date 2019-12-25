@@ -40,7 +40,7 @@ export class Versioning extends Plugin {
             }
 
             // Log
-            const msg = `[Plugins/CompHash]: Component hashes are inequal (${FilterComparison[res]}), found diff ${diff}`
+            const msg = `[Plugins/CompHash]: Component hashes are inequal (${FilterComparison[res]}), missing/changed: ${diff}`
             if (this.strict)
                 throw new Error(msg)
             else
@@ -49,6 +49,7 @@ export class Versioning extends Plugin {
             const msg = `[Plugins/CompHash]: Component hashes are incompatible (${FilterComparison[res]}), might be a bug in the bloomfilters`
             throw new Error(msg)
         }
+        console.debug('[Plugins/CompHash]: sucess', res)
     }
     public onSerializeStart(stream: SerialStream): void { { this.components.clear() } }
     public onSerializeClass(stream: SerialStream, obj: any): void {

@@ -34,10 +34,11 @@ export function ComponentVersion(version: string){
     }
 }
 
+// TODO: unversioned component hash for module identification
 export function ComponentID<T extends Constructor<Component>>(obj: T): string {
     const cname: string = Reflect.getMetadata(ClassKey, obj)
     const major: string = Reflect.getMetadata(VersionKey, obj)
-    return `${cname}${major}`
+    return `${cname}-${major}`
 }
 
 /**
