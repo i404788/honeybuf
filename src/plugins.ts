@@ -1,13 +1,29 @@
 import { Plugin, Serializable, AddPlugin } from "./serializer";
 import { SerialStream } from "./barestream";
-import { Component, isComponent, CollectionHash, VerificationFilter, ComponentID } from "./misc/comphash";
+import { Component, isComponent, VersionedID, UnversionedID } from "./misc/comphash";
 import BloomFilter, { FilterComparison } from "./misc/bloom";
 
 
+export enum VersioningFlags {
+    None = 0,
+    Strict = 1,
+    Versioned = 2,
+    Unversioned = 4,
+}
+
 export class Versioning extends Plugin {
     components: Set<Constructor<Component>> = new Set()
-    constructor(private strict = false) {
+    constructor(private flags: VersioningFlags = VersioningFlags.None) {
         super()
+    }
+
+    private getIDs(components: Array<Constructor<Component>>) {
+        return components.flatMap((x) => {
+            let r = []
+            if (this.flags & VersioningFlags.Versioned) r.push(VersionedID(x))
+            if (this.flags & VersioningFlags.Unversioned) r.push(UnversionedID(x))
+            return r
+        })
     }
 
     public onDeserializeStart(stream: SerialStream): void { this.components.clear() }
@@ -17,16 +33,20 @@ export class Versioning extends Plugin {
     }
     public onDeserializeValue(stream: SerialStream, obj: Serializable<any>): void {
         if (isComponent(obj))
-            this.components.add((obj as Component).constructor)
+            this.components.add((obj as any).constructor)
     }
     public onDeserializeEnd(stream: SerialStream): void {
-        let components = Array.from(this.components)
-
         const len = stream.ReadVarint()
         const rhash = stream.ReadBytes(Number(len))
 
         const filter = BloomFilter.fromBuffer(rhash)
-        const rfilter = VerificationFilter(components, filter.k, filter.bits)
+        const rfilter = new BloomFilter(filter.bits, filter.k)
+
+        let components = Array.from(this.components)
+        const ids = this.getIDs(components)
+        ids.map(x => rfilter.add(x))
+        
+        console.log(filter.filter.toString(2), rfilter.filter.toString(2))
 
         // Check bloom filter for equality
         const res = filter.compare(rfilter)
@@ -36,12 +56,14 @@ export class Versioning extends Plugin {
             let diff = []
             for (const item of this.components) {
                 // Check and add to diff
-                if (!rfilter.test(ComponentID(item))) diff.push(ComponentID(item))
+                if (this.flags & VersioningFlags.Versioned && !filter.test(VersionedID(item))) 
+                    diff.push(VersionedID(item))
+                if (this.flags & VersioningFlags.Unversioned && !filter.test(UnversionedID(item))) 
+                    diff.push(UnversionedID(item))
             }
-
             // Log
             const msg = `[Plugins/CompHash]: Component hashes are inequal (${FilterComparison[res]}), missing/changed: ${diff}`
-            if (this.strict)
+            if (this.flags & VersioningFlags.Strict)
                 throw new Error(msg)
             else
                 console.warn(msg)
@@ -51,7 +73,7 @@ export class Versioning extends Plugin {
         }
         console.debug('[Plugins/CompHash]: sucess', res)
     }
-    public onSerializeStart(stream: SerialStream): void { { this.components.clear() } }
+    public onSerializeStart(stream: SerialStream): void { this.components.clear() }
     public onSerializeClass(stream: SerialStream, obj: any): void {
         if (isComponent(obj))
             this.components.add(obj.constructor)
@@ -61,9 +83,10 @@ export class Versioning extends Plugin {
             this.components.add((obj as Component).constructor)
     }
     public onSerializeEnd(stream: SerialStream): void {
-        let components = Array.from(this.components)
-        let hash = CollectionHash(components)
-        // TODO: Universal identifier?
+        const components = Array.from(this.components)
+        const ids = this.getIDs(components)
+        const bfilter = BloomFilter.fromCollection(ids)
+        const hash = bfilter.toBuffer()
         stream.WriteVarint(hash.byteLength)
         stream.WriteBytes(hash)
     }

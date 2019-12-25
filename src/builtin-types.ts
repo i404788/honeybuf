@@ -27,6 +27,7 @@ export class Integer extends Serializable<number> {
     }
 
     public Write(stream: SerialStream, value: number) {
+        // Over/underflow/truncation protection from BigInteger base
         this.base.Write(stream, BigInt(value))
     }
 
@@ -39,6 +40,14 @@ export class Integer extends Serializable<number> {
  * Serializes Integers of arbitrary size using tc39 BigInt
  */
 export class BigInteger extends Serializable<bigint> {
+    get SafeMax() {
+        return this.args.unsigned ? 2n ** BigInt(this.args.bits) : 2n ** BigInt(this.args.bits-1);
+    }
+
+    get SafeMin(){
+        return this.args.unsigned ? 0 : -(2n ** BigInt(this.args.bits-1));
+    }
+
     public constructor(protected args: { bits: number; unsigned?: boolean } = { bits: 256 }) {
         super()
     }
@@ -46,6 +55,11 @@ export class BigInteger extends Serializable<bigint> {
         if (isType(value, Number)) value = BigInt((value as unknown as number) | 0);
         if (!isType(value, BigInt))
             throw new Error(`BigInt Serializer: Bad type ${value}, '${typeof value}' !== 'bigint'`);
+    
+        // Over/underflow/truncation protection
+        if (value > this.SafeMax || value < this.SafeMin) 
+            throw new Error(`[Stream/Int]: Failed to serialize, ${value} out of range ${this.SafeMin}-${this.SafeMax}`)
+    
         stream.WriteInt(this.args.bits, value);
     };
 

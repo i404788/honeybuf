@@ -1,4 +1,4 @@
-import { isComponent, ComponentVersion, CollectionHash, ClassKey, VersionKey, ComponentID, Component } from "../src/misc/comphash";
+import { isComponent, ComponentVersion, VersionKey, VersionedID, Component, UnversionedID } from "../src/misc/comphash";
 import BloomFilter from "../src/misc/bloom";
 {
     console.log('Functionality test')
@@ -14,10 +14,12 @@ import BloomFilter from "../src/misc/bloom";
     const x = new TestA()
     const y = new TestB()
 
-    const test = (x: Constructor<Component>, f: BloomFilter) => console.log(`Is ${ComponentID(x)} active ${f.test(ComponentID(x))}`)
+    const test = (x: Constructor<Component>, f: BloomFilter) => console.log(`Is ${VersionedID(x)} active ${f.test(VersionedID(x))}`)
 
-    if (isComponent(x)) {
-        let h = CollectionHash([x, y])
+    if (isComponent(x) && isComponent(y)) {
+        let ids = ([x, y] as Component[]).flatMap(x => [VersionedID(x.constructor), UnversionedID(x.constructor)])
+        let bf = BloomFilter.fromCollection(ids)
+        let h = bf.toBuffer()
         console.log(h)
         console.log(BigInt('0x' + h.toString('hex')).toString(2))
         const filter = BloomFilter.fromBuffer(h)
@@ -32,7 +34,7 @@ import BloomFilter from "../src/misc/bloom";
 
 import { SerializableClass, Serialized, Serializer, AddPlugin } from "../src/serializer";
 import { Integer, CharVector } from "../src/builtin-types";
-import { Versioning } from "../src/plugins";
+import { Versioning, VersioningFlags } from "../src/plugins";
 
 {
     @ComponentVersion('abc')
@@ -41,7 +43,7 @@ import { Versioning } from "../src/plugins";
     @ComponentVersion('cde')
     class str extends CharVector {}
 
-    @AddPlugin(Versioning, [true])
+    @AddPlugin(Versioning, [VersioningFlags.Strict | VersioningFlags.Unversioned | VersioningFlags.Versioned])
     @SerializableClass
     class TestClass {
         // Note: The <number> is optional, but should be added if you want typechecking
@@ -57,14 +59,22 @@ import { Versioning } from "../src/plugins";
         }
     }
 
+    console.log('\n\nFault Injection test')
     let x = new Serializer<TestClass>(TestClass)
     let y = new TestClass('abc')
     y.int = 5;
     let z = x.Serialize(y)
     console.log(z)
-    // Fault injection
-    console.log('\n\nFault Injection test')
-    z[z.byteLength-1] = 0x00
+    console.log(VersionedID(int), UnversionedID(int))
+
+    // Fault injection 1: Post-serialization corruption
+    // Note: might not trigger all components are distribution is random
+    //  Change n in `..length-n` higher to trigger more
+    z.fill(0, z.byteLength-2)
+
+    // Fault injection 2: Version incompatibility
+    // Reflect.metadata(VersionKey, 'bcd')(int)
+
     try {
         let a = x.Deserialize(z)
         console.log(a)
@@ -73,5 +83,3 @@ import { Versioning } from "../src/plugins";
     }
 
 }
-
-// TODO: benchmark fp rate (at different debugmodes)

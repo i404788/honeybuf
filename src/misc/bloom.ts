@@ -76,6 +76,25 @@ export default class BloomFilter {
         return Buffer.concat([toBufferLE(BigInt(this.k), 2), toBufferLE(this.filter, Math.ceil(this.bits/8))])
     }
 
+    /**
+     * Automatically gets the optimal bloomfilter for some collection
+     * 
+     * NOT recommended for adding more items afterwards
+     * @param collection Set of ids to filter
+     */
+    public static fromCollection(collection: (string | Buffer)[]): BloomFilter {
+        let {bits, k} = BloomFilter.OptimalParameters(collection.length)
+
+        // To power of 2
+        bits = 1 << Math.ceil(Math.log2(bits)) 
+        console.log(bits, k, collection.length)
+
+        let bfilter = new BloomFilter(Math.round(bits), k)
+        collection.map(x => bfilter.add(x))
+
+        return bfilter
+    }
+
     public static itemHash(v: string | Buffer, bits: number, k: number): bigint {
         let o = 0n
         let m = BigInt(bits)
@@ -102,5 +121,33 @@ export default class BloomFilter {
 
     public static OptimalK(bits: number, n: number) {
         return (bits / n) * Math.log(2)
+    }
+
+    public static OptimalParameters(n: number, fp = 0.001){
+        // https://github.com/ArashPartow/bloom/blob/master/bloom_filter.hpp
+        let min_m = Number.MAX_VALUE;
+        let min_k = 0.0
+        let k = 1.0
+
+        while (k < 1000.0)
+        {
+           const numerator   = (- k * n);
+           const denominator = Math.log(1.0 - Math.pow(fp, 1.0 / k));
+  
+           const curr_m = numerator / denominator;
+  
+           if (curr_m < min_m)
+           {
+              min_m = curr_m;
+              min_k = k;
+           }
+  
+           k += 1.0;
+        }
+
+        return {
+            k: min_k < 1 ? 1 : min_k,
+            bits: min_m < 8 ? 8 : min_m,
+        }
     }
 }

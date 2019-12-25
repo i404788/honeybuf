@@ -31,7 +31,6 @@ export class SerialStream {
 
     public WriteInt(bits: number, value: bigint | number): void {
         this.CheckWriteProtection()
-        // TODO: integer tunc protection
         if (typeof value === 'number') value = BigInt(value)
         const buff = BigIntToBuffer(value, bits)
         this.WriteBytes(buff.slice(0, GetByteLength(bits)))

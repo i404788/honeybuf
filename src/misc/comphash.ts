@@ -34,46 +34,13 @@ export function ComponentVersion(version: string){
     }
 }
 
+export function UnversionedID<T extends Constructor<Component>>(obj: T): string {
+    return Reflect.getMetadata(ClassKey, obj)
+}
+
 // TODO: unversioned component hash for module identification
-export function ComponentID<T extends Constructor<Component>>(obj: T): string {
-    const cname: string = Reflect.getMetadata(ClassKey, obj)
+export function VersionedID<T extends Constructor<Component>>(obj: T): string {
+    const cname: string = UnversionedID(obj)
     const major: string = Reflect.getMetadata(VersionKey, obj)
     return `${cname}-${major}`
-}
-
-/**
- * Hash Component Types to form a unique hash for these components/versions
- * @param obj ObjectTypes to Hash
- * @param debugMode An exponentiator of the amount of bits used, usually 2 or 3 is enough for all cases.
- * @returns [filter: Buffer, k: number], both are required to compare
- */
-export function CollectionHash<T extends Component>(obj: T[], debugMode = 0): Buffer {
-    const len = obj.length
-    // Length as a power of 2
-    let bits = 1 << Math.ceil(Math.log2(obj.length))
-    if (bits < 8) bits = 8
-    if (debugMode) bits <<= debugMode;
-
-    let bestK = Math.round(BloomFilter.OptimalK(bits, len)) || 1
-    let filter = new BloomFilter(bits, bestK)
-    // console.log(BloomFilter.ExpectedFalsePositives(bits, obj.length))
-
-    for (const it of obj) {
-        filter.add(ComponentID(it.constructor))
-    }
-    return filter.toBuffer()
-}
-
-/**
- * Same as CollectionHash, but for deserializing/receiving
- * @param obj ObjectTypes to Hsah
- * @param k the k parameter (see bloom filters)
- * @param bits 
- */
-export function VerificationFilter<T extends Component>(obj: T[], k: number, bits: number): BloomFilter {
-    let filter = new BloomFilter(bits, k)
-    for (const it of obj) {
-        filter.add(ComponentID(it.constructor))
-    }
-    return filter
 }
