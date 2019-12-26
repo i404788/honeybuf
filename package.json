@@ -1,5 +1,5 @@
 {
-  "name": "binary-serializer-ts",
+  "name": "honeybuf",
   "version": "1.0.0",
   "main": "dist/index.js",
   "repository": "https://git.devdroplets.com/devdroplets/binary-serializer-ts",
