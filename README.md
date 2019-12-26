@@ -3,13 +3,14 @@ A sweet buffer allowing you to integrate serialization into your classes, while 
 
 ### Features
 * Built-in types
-    * BigInteger
-    * Integer
+    * BigInteger (tc39 bigint)
+    * Integer (1...52 bit)
     * CharVector (string)
-    * Vector\<T\>
+    * Float (16,32,64 bit)
+    * Vector\<T\> (T[])
     * BufferLike
     * SingleBoolean
-    * DenseBooleanArray
+    * DenseBooleanArray (see inline docs)
     * MapLike<K,V>
 * Strongly typed
 * Custom types
@@ -23,7 +24,6 @@ A sweet buffer allowing you to integrate serialization into your classes, while 
 See `/examples` folrder.
 
 ## Usage
-
 ### Designing your data class 
 Before your class put the `@SerializableClass` decorator.
 
@@ -149,11 +149,12 @@ Varints have the same encoding as bitcoin-core's varints
 
 ### Dependencies
 We only use a few dependencies (1.2MB total).
-Sorted by size (children included):
-* reflect-metadata
-* bigint-buffer
-* xxh3-ts
-* bigint-popcnt
+* External
+    * reflect-metadata
+    * bigint-buffer
+* Created by us
+    * xxh3-ts
+    * bigint-popcnt
 
 ## TODO
 * Add fault tolerance extension

@@ -87,7 +87,7 @@ export class SingleBoolean extends Serializable<boolean> {
 
 /**
  * Serializes a dense variably-sized boolean array
- * size: |^log256(n)^| + |^n/8^| + 1
+ * size: 1 + |^log256(n)^| + |^n/8^|
  */
 export class DenseBooleanArray extends Serializable<boolean[]> {
     public Write(stream: SerialStream, value: boolean[], args?: {}) {
