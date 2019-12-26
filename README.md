@@ -74,9 +74,17 @@ class WrapperClass {
     @Serialized<TestClass>(TestClass)
     base: TestClass
 
+    @Serialized<number>(new Integer({bits: 8}))
+    additionalint: number = 1
     ... 
 }
 
+
+let object = new WrapperClass()
+let binary: Buffer = x.Serialize(object)
+// <Buffer <Buffer 01 04 00 00 00 03 61 62 63>
+let newobject = serializer.Deserialize(binary)
+// WrapperClass { additionalint: 1, base: TestClass { int: 4, r: 'abc' } }
 ```
 
 > See `examples/nest.ts` for full example
