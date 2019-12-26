@@ -2,6 +2,9 @@ import { Plugin, Serializable, AddPlugin } from "./serializer";
 import { SerialStream } from "./barestream";
 import { Component, isComponent, VersionedID, UnversionedID } from "./misc/comphash";
 import BloomFilter, { FilterComparison } from "./misc/bloom";
+import { Logger, logger as defaultlogger, LogTrace } from "./utils";
+
+export let logger: Logger = defaultlogger
 
 
 export enum VersioningFlags {
@@ -45,7 +48,7 @@ export class Versioning extends Plugin {
         let components = Array.from(this.components)
         const ids = this.getIDs(components)
         ids.map(x => rfilter.add(x))
-        
+
         // console.log(filter.filter.toString(2), rfilter.filter.toString(2))
 
         // Check bloom filter for equality
@@ -56,9 +59,9 @@ export class Versioning extends Plugin {
             let diff = []
             for (const item of this.components) {
                 // Check and add to diff
-                if (this.flags & VersioningFlags.Versioned && !filter.test(VersionedID(item))) 
+                if (this.flags & VersioningFlags.Versioned && !filter.test(VersionedID(item)))
                     diff.push(VersionedID(item))
-                if (this.flags & VersioningFlags.Unversioned && !filter.test(UnversionedID(item))) 
+                if (this.flags & VersioningFlags.Unversioned && !filter.test(UnversionedID(item)))
                     diff.push(UnversionedID(item))
             }
             // Log
@@ -66,12 +69,12 @@ export class Versioning extends Plugin {
             if (this.flags & VersioningFlags.Strict)
                 throw new Error(msg)
             else
-                console.warn(msg)
+                logger(new LogTrace('warning', msg))
         } else if (res === FilterComparison.Incompatible) {
             const msg = `[Plugins/CompHash]: Component hashes are incompatible (${res}), might be a bug in the bloomfilters`
             throw new Error(msg)
         }
-        console.debug('[Plugins/CompHash]: sucess', res)
+        logger(new LogTrace('verbose', '[Plugins/CompHash]: sucess ${res}'))
     }
     public onSerializeStart(stream: SerialStream): void { this.components.clear() }
     public onSerializeClass(stream: SerialStream, obj: any): void {

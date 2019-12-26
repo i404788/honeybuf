@@ -14,18 +14,11 @@ export abstract class Serializable<T> {
     abstract Read(stream: SerialStream, args?: {}): T;
 }
 
-export function staticImplements<T>() {
-    return <U extends T>(constructor: U) => {
-        Reflect.metadata(SerializerKey, Symbol('UniqueSerializationID'))(constructor as unknown as Function)
-        constructor
-    };
-}
-
 export function SerializableClass(constructor: Function) {
     Reflect.metadata(SerializerKey, Symbol('UniqueSerializationID'))(constructor)
 }
 
-export interface SelfAwareClass {
+interface SelfAwareClass {
     constructor: ObjectConstructor | Function;
     [key: string]: any
 }
