@@ -1,4 +1,4 @@
-import { isComponent, ComponentVersion, VersionKey, VersionedID, Component, UnversionedID } from "../src/misc/comphash";
+import { isComponent, ComponentVersion, VersionedID, Component, UnversionedID } from "../src/misc/comphash";
 import BloomFilter from "../src/misc/bloom";
 {
     console.log('Functionality test')
@@ -32,9 +32,8 @@ import BloomFilter from "../src/misc/bloom";
     }
 }
 
-import { SerializableClass, Serialized, Serializer, AddPlugin } from "../src/serializer";
-import { Integer, CharVector } from "../src/builtin-types";
-import { Versioning, VersioningFlags } from "../src/plugins";
+import { SerializableClass, Serialized, Serializer, AddPlugin, Integer, CharVector, plugins } from "../src";
+const { Versioning, VersioningFlags } = plugins;
 
 {
     @ComponentVersion('abc')

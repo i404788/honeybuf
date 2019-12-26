@@ -1,5 +1,4 @@
-import { SerializableClass, Serialized, Serializer } from "../src/serializer";
-import { Integer, CharVector } from "../src/builtin-types";
+import { SerializableClass, Serialized, Serializer, Integer, CharVector } from "../src";
 
 
 @SerializableClass

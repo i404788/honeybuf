@@ -1,5 +1,4 @@
-import { CharVector, Integer } from "../src/builtin-types";
-import { SerialStream } from "../src/barestream";
+import { SerialStream, CharVector, Integer } from "../src";
 
 // Note, using BigIntegers because javascript can't use 64bit uints with the 'number' type
 const uint8_t = new Integer({bits: 8, unsigned: true})
