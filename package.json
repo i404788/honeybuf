@@ -9,7 +9,8 @@
   "dependencies": {
     "bigint-buffer": "^1.1.5",
     "reflect-metadata": "^0.1.13",
-    "tiny-bloomfilter":"^1.0.1"
+    "tiny-bloomfilter":"^1.0.1",
+    "xxh3-ts": "^1.0.2"
   },
   "devDependencies": {
     "@types/node": "^12.12.21"

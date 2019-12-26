@@ -2,7 +2,7 @@ import { Plugin, Serializable, AddPlugin } from "./serializer";
 import { SerialStream } from "./barestream";
 import { Component, isComponent, VersionedID, UnversionedID } from "./misc/comphash";
 import BloomFilter, { FilterComparison } from "tiny-bloomfilter";
-import { Logger, logger as defaultlogger, LogTrace } from "./utils";
+import { Logger, logger as defaultlogger, LogTrace, bitmask } from "./utils";
 
 export let logger: Logger = defaultlogger
 
@@ -94,5 +94,38 @@ export class Versioning extends Plugin {
         stream.WriteBytes(hash)
     }
     public onInitialize() {
+    }
+}
+
+import { XXH3_128 } from "xxh3-ts";
+export class Integrity extends Plugin {
+    constructor(private bytes: 1 | 2 | 4 | 8 | 16 = 4){
+        super()
+    }
+
+    private getHash(stream: SerialStream): bigint {
+        const actualcursor = stream.cursor
+        stream.cursor = 0
+        const msg = stream.ReadBytes(actualcursor)
+        stream.cursor = actualcursor
+
+        return XXH3_128(msg, 0xa35891ca793bc50an);
+    }
+
+    public onSerializeEnd(stream: SerialStream): void {
+        const hash = this.getHash(stream)
+        const bits = 8 * this.bytes
+        stream.WriteVarint(this.bytes)
+        stream.WriteInt(bits, hash & bitmask(bits)) 
+    }
+
+    public onDeserializeEnd(stream: SerialStream): void {
+        // Ordering is important because of stream.cursor
+        // Don't refactor unless you know what this means
+        const hash = this.getHash(stream)
+        const len = stream.ReadVarint()
+        const bits = 8n * len
+        const rhash = stream.ReadInt(Number(bits), true)
+        if ((hash & bitmask(Number(bits))) !== rhash) throw new Error(`Integrity check failed: ${hash} !== ${rhash}`)
     }
 }

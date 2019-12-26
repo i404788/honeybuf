@@ -1,7 +1,7 @@
 # Honeybuf
 A sweet serializer allowing you to integrate serialization into your classes, while having protobuf-like control.
 
-### Features
+## Features
 * Built-in types
     * BigInteger (tc39 bigint)
     * Integer (1...52 bit)
@@ -20,8 +20,23 @@ A sweet serializer allowing you to integrate serialization into your classes, wh
     * Parameterized types
 * Plugins
 
+
+## Index
+* [Usage](#Usage)
+    * [Designing your data class](#Designing-your-data-class)
+    * [(De-)Serializing objects](#De-Serializing-objects)
+    * [Nesting data classes](#Nesting-data-classes)
+* [Plugins](#Plugins)
+    * [Integrity](#Integrity)
+    * [CompHash](#CompHash)
+* [Errors](#Errors)
+    * [Out of bytes](#Out-of-bytes)
+    * [Integrity check failed](#Integrity-check-failed)
+* [Misc](#Misc)
+
+
 ### Examples
-See `/examples` folrder.
+See `/examples` folder.
 
 ## Usage
 ### Designing your data class 
@@ -93,6 +108,15 @@ let newobject = serializer.Deserialize(binary)
 > See `examples/nest.ts` for full example
 
 ## Plugins
+### Integrity
+The Integrity plugin allows you to validate the correctness of a binary data-struct by including a hash at the end.
+It is configurable for `1 | 2 | 4 | 8 | 16` bytes, using a higher number decreases the probability of the corruption not being detected.
+
+We use the XXH3_128 hash function to create the hash.
+
+> See `examples/integrity.ts` for full example
+
+
 ### CompHash
 The CompHash plugin allows you to validate a class for both the correct field-types (components) and versioning.
 It uses a bloomfilter to check for membership of each component.
@@ -140,6 +164,39 @@ class TestClass {
 ```
 
 > See `examples/comp.ts` for full example
+
+## Errors
+In most cases if there is a problem honeybuf will throw an error. 
+
+Here are some common ones and their causes.
+
+### Out of bytes
+This is a generic error indicating that the binary you are deserializing is likely corrupted, or was serialized with different structure.
+
+Example where the binary was corrupted:
+```
+Error: Out of bytes
+    at SerialStream.ReadBytes (barestream.js:65:19)
+    at BufferLike.Read (builtin-types.js:145:23)
+    at CharVector.Read (builtin-types.js:130:26)
+    at Serializer._Deserialize (serializer.js:73:42)
+    at Serializer.Deserialize (serializer.js:56:21)
+```
+
+### Integrity check failed
+When using the Integrity plugin you are able to verify if the message was corrupted by using a hash function.
+If you get this error the structure was valid, but the contents were modified.
+
+Example where the binary was corrupted:
+```
+Error: Integrity check failed: 312365754742516870814534883039279513871 !== 2556109583
+    at Integrity.onDeserializeEnd (plugins.js:130:19)
+    at Integrity.call (serializer.js:28:25)
+    at serializer.js:86:37
+    at Array.forEach (<anonymous>)
+    at Serializer._Deserialize (serializer.js:86:22)
+    at Serializer.Deserialize (serializer.js:56:21)
+```
 
 ## Misc
 ### Notes

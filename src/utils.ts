@@ -9,6 +9,10 @@ export class LogTrace extends Error {
 export type Logger = (log: LogTrace) => void
 export let logger: Logger  = (_) => {}
 
+export const bitmask = (bits: number): bigint => {
+  return ((1n << BigInt(bits))-1n)
+}
+
 // Converts bit lengths into bytelength
 export function GetByteLength(bits: number): number {
   let length = bits / 8
