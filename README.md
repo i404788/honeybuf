@@ -30,7 +30,7 @@ Before your class put the `@SerializableClass` decorator.
 Then for each field you want to include in serialization add the `@Serialized(...)` decorator.
 The parameter should be a `SerializableValue` which supports the field you want to serialize.
 
-**The only other requirement is that your class doesn't throw an error when using an empty constructor (`new YourClass()` should work).**
+**The only requirement is that your class doesn't explicitly throw an error when no parameters are provided.**
 You are allowed to put methods, properties, and everything else you want into your class without a problem.
 
 ```
