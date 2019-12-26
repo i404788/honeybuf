@@ -22,17 +22,17 @@ A sweet serializer allowing you to integrate serialization into your classes, wh
 
 
 ## Index
-* [Usage](#Usage)
-    * [Designing your data class](#Designing-your-data-class)
-    * [(De-)Serializing objects](#De-Serializing-objects)
-    * [Nesting data classes](#Nesting-data-classes)
-* [Plugins](#Plugins)
-    * [Integrity](#Integrity)
-    * [CompHash](#CompHash)
-* [Errors](#Errors)
-    * [Out of bytes](#Out-of-bytes)
-    * [Integrity check failed](#Integrity-check-failed)
-* [Misc](#Misc)
+* [Usage](#usage)
+    * [Designing your data class](#designing-your-data-class)
+    * [(De-)Serializing objects](#de-serializing-objects)
+    * [Nesting data classes](#nesting-data-classes)
+* [Plugins](#plugins)
+    * [Integrity](#integrity)
+    * [CompHash](#comphash)
+* [Errors](#errors)
+    * [Out of bytes](#out-of-bytes)
+    * [Integrity check failed](#integrity-check-failed)
+* [Misc](#misc)
 
 
 ### Examples
@@ -172,6 +172,7 @@ Here are some common ones and their causes.
 
 ### Out of bytes
 This is a generic error indicating that the binary you are deserializing is likely corrupted, or was serialized with different structure.
+This usually happens when deserializing arrays/vectors/maps, as their dynamic-size pointer was corrupted.
 
 Example where the binary was corrupted:
 ```
