@@ -113,10 +113,11 @@ This plugin will add some bytes to your binary object, expect a 1-2 bytes per co
 ```
 
 **Notes**
-When changing a class' name the CompHash also changes. 
 
-When using only `versioned` doesn't allow you to differentiate between missing and updated (think `<type>-<version>`).
-While only `unversioned` doesn't allow you to verify if you are using the same version (think `<type>`).
+When changing a class' name the CompHash also changes, so these should be consistent between systems.
+
+When using only `versioned` doesn't allow you to differentiate between missing and updated (think hash of `<type>-<version>`).
+While only `unversioned` doesn't allow you to verify if you are using the same version (think hash of `<type>`).
 
 This plugin currently doesn't allow you to detect programmatically if there was an error, although this may be added later.
 
