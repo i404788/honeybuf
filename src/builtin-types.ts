@@ -16,7 +16,6 @@ const isType = <T>(value: any, type: Type<T> | FunctionType<T>): value is T => {
 
 /**
  * Serializes Integers between (exclusive) 2^53 and -2^53 (aka 52-bit IEE754 int).
- * 
  */
 export class Integer extends Serializable<number> {
     protected base: BigInteger

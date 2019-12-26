@@ -97,7 +97,6 @@ export class Serializer<T extends SelfAwareClass> {
         const sKeys = Object.getOwnPropertyNames(this.model)
         for (const iterator of sKeys) {
             let x = Reflect.getMetadata(SerializerKey, this.type.prototype, iterator)
-            // console.log(x)
             if (x) {
                 if (x instanceof Serializable) {
                     this.plugins.forEach(z => z.call(z.onDeserializeValue, [stream, x]));

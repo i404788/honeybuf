@@ -39,36 +39,3 @@ export function BufferToBigInt(buffer: Buffer, unsigned = false): bigint {
     value = BigInt.asIntN(len * 8, value); // Cast to Int
   return value;
 }
-
-export enum BinaryEncoding { Binary, Base2, BasE91, Base64, Hex }
-
-export function EncodeBuffer(buffer: Buffer, encoding: BinaryEncoding): string {
-  switch (encoding) {
-    case BinaryEncoding.Hex:
-      return buffer.toString('hex')
-    // TODO: basE91
-    case BinaryEncoding.Base2:
-      let str = ''
-      for (const iterator of buffer)
-        str += iterator.toString(2)
-      return str
-    case BinaryEncoding.Base64:
-      return buffer.toString('base64')
-    default: // Binary
-      return buffer.toString('binary')
-  }
-}
-
-export function DecodeBuffer(buffer: string, encoding: BinaryEncoding): Buffer {
-  switch (encoding) {
-    case BinaryEncoding.Hex:
-      return Buffer.from(buffer, 'hex')
-    // TODO: basE91
-    case BinaryEncoding.Base64:
-      return Buffer.from(buffer, 'base64')
-    case BinaryEncoding.Base2:
-      throw "BinaryString not implemented for DecodeBuffer";
-    default: // Binary
-      return Buffer.from(buffer, 'binary')
-  }
-}
