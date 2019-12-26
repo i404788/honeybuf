@@ -1,12 +1,4 @@
 /**
- * This is an extension for typescript allowing you to check compatibilty of classes across serialization.
- * We do this using decorators, allowing you to 'version' your class into major/minor revisions.
- * When using this lib a remote peer, which is able to parse the comphash,
- *  should be able to verify if 'something' is outdated; and whether it's a major or minor version
- * 
- * ComponentHashes can be recursively aggregated, however this loses the ability to track which component hash was the different one.
- * The remote validator will need to include the same components as the local 'origin' did.
- * 
  * A bloom filter is used, each element is the value `<component_uuid><version>`
  * If the version changes you will thus be able to detect which component it (likely) is.
 */

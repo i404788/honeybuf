@@ -46,7 +46,7 @@ export class Versioning extends Plugin {
         const ids = this.getIDs(components)
         ids.map(x => rfilter.add(x))
         
-        console.log(filter.filter.toString(2), rfilter.filter.toString(2))
+        // console.log(filter.filter.toString(2), rfilter.filter.toString(2))
 
         // Check bloom filter for equality
         const res = filter.compare(rfilter)
@@ -62,13 +62,13 @@ export class Versioning extends Plugin {
                     diff.push(UnversionedID(item))
             }
             // Log
-            const msg = `[Plugins/CompHash]: Component hashes are inequal (${FilterComparison[res]}), missing/changed: ${diff}`
+            const msg = `[Plugins/CompHash]: Component hashes are inequal (${res}), missing/changed: ${diff}`
             if (this.flags & VersioningFlags.Strict)
                 throw new Error(msg)
             else
                 console.warn(msg)
         } else if (res === FilterComparison.Incompatible) {
-            const msg = `[Plugins/CompHash]: Component hashes are incompatible (${FilterComparison[res]}), might be a bug in the bloomfilters`
+            const msg = `[Plugins/CompHash]: Component hashes are incompatible (${res}), might be a bug in the bloomfilters`
             throw new Error(msg)
         }
         console.debug('[Plugins/CompHash]: sucess', res)

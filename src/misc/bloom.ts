@@ -87,7 +87,7 @@ export default class BloomFilter {
 
         // To power of 2
         bits = 1 << Math.ceil(Math.log2(bits)) 
-        console.log(bits, k, collection.length)
+        // console.log(bits, k, collection.length)
 
         let bfilter = new BloomFilter(Math.round(bits), k)
         collection.map(x => bfilter.add(x))

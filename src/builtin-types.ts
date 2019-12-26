@@ -260,20 +260,3 @@ export class Float extends Serializable<number> {
         }
     }
 }
-
-
-// TODO: Create an inline proxy serializable value
-// type MapBase = { [key: string]: number | string }
-// export class Map extends SerializableValue<MapBase> {
-//     Write(stream: SerialStream, value: MapBase): void {
-//         let keys = Object.keys(value)
-//         stream.WriteVarint(keys.length)
-//         for (const key of keys) {
-//             if (value instanceof SerializableValue){
-//             }
-//         }
-//     }
-//     Read(stream: SerialStream): MapBase {
-//         throw new Error("Method not implemented.");
-//     }
-// }
