@@ -112,6 +112,8 @@ While only `unversioned` doesn't allow you to verify if you are using the same v
 
 This plugin currently doesn't allow you to detect programmatically if there was an error, although this may be added later.
 
+When using `unversioned` you still need the `@ComponentVersion` decorator, but you don't *need* to fill in a version.
+
 ```
 @ComponentVersion('cde')
 class str extends CharVector {}
