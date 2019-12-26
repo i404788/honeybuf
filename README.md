@@ -1,5 +1,5 @@
 # Honeybuf
-A sweet buffer allowing you to integrate serialization into your classes, while having protobuf-like control.
+A sweet serializer allowing you to integrate serialization into your classes, while having protobuf-like control.
 
 ### Features
 * Built-in types
@@ -11,7 +11,7 @@ A sweet buffer allowing you to integrate serialization into your classes, while 
     * BufferLike
     * SingleBoolean
     * DenseBooleanArray (see inline docs)
-    * MapLike<K,V>
+    * MapLike<K,V> ({K: V})
 * Strongly typed
 * Custom types
     * In as few as 12 loc
