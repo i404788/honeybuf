@@ -1,7 +1,7 @@
 import { Plugin, Serializable, AddPlugin } from "./serializer";
 import { SerialStream } from "./barestream";
 import { Component, isComponent, VersionedID, UnversionedID } from "./misc/comphash";
-import BloomFilter, { FilterComparison } from "./misc/bloom";
+import BloomFilter, { FilterComparison } from "tiny-bloomfilter";
 import { Logger, logger as defaultlogger, LogTrace } from "./utils";
 
 export let logger: Logger = defaultlogger

@@ -14,7 +14,7 @@ bigint-buffer@^1.1.5:
   dependencies:
     bindings "^1.3.0"
 
-bigint-popcnt@1.0.1:
+bigint-popcnt@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/bigint-popcnt/-/bigint-popcnt-1.0.1.tgz#fb338561143f6bc82897e04d4197d65ccb815050"
   integrity sha512-M5C8W/LDasDy5u9Vg0AePC7J00jRI1AT4XScSMd64Ira0I4DhZCSXc9/jHI5LCk9Csz8iQoXHmaA04ROoDbGJA==
@@ -35,6 +35,14 @@ reflect-metadata@^0.1.13:
   version "0.1.13"
   resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.13.tgz#67ae3ca57c972a2aa1642b10fe363fe32d49dc08"
   integrity sha512-Ts1Y/anZELhSsjMcU605fU9RE4Oi3p5ORujwbIKXfWa+0Zxs510Qrmrce5/Jowq3cHSZSJqBjypxmHarc+vEWg==
+
+tiny-bloomfilter@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/tiny-bloomfilter/-/tiny-bloomfilter-1.0.1.tgz#13b5b1aec1eda4c45d585ec8c2d35e74519b8df6"
+  integrity sha512-cYKe0aggIUMIeXM1hodWg4TCi+nPmr+QwFJdYYTOWrq4YqEDdBbkoYmo/z1yVYlpGscj4S9arGIXbWZ4Nor6dQ==
+  dependencies:
+    bigint-popcnt "^1.0.1"
+    xxh3-ts "^1.0.2"
 
 xxh3-ts@^1.0.2:
   version "1.0.2"

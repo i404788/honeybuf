@@ -1,5 +1,5 @@
 import { isComponent, ComponentVersion, VersionedID, Component, UnversionedID } from "../src/misc/comphash";
-import BloomFilter from "../src/misc/bloom";
+import BloomFilter from "tiny-bloomfilter";
 {
     console.log('Functionality test')
     @ComponentVersion('1.44')
