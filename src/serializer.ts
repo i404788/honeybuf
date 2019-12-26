@@ -1,4 +1,3 @@
-import { plainToClass } from 'class-transformer'
 import "reflect-metadata";
 import { SerialStream, ReadWriteMode } from "./barestream";
 
@@ -31,7 +30,7 @@ export interface SelfAwareClass {
     [key: string]: any
 }
 
-export function Serialized<S>(s: Serializable<S>) {
+export function Serialized<S>(s: Serializable<S> | Constructor<S>) {
     return <T>(target: T, propertyKey: string | symbol) => {
         // TODO: should check `S.constructor == target[propertyKey].constructor`, but is impossible atm
         Reflect.metadata(SerializerKey, s)(target, propertyKey)
@@ -93,6 +92,7 @@ export class Serializer<T extends SelfAwareClass> {
     }
 
     public _Deserialize(stream: SerialStream, callees: (string | symbol)[] = []): T {
+        let result = Reflect.construct(this.type, [])
         this.plugins.forEach(x => x.call(x.onDeserializeStart, [stream]));
 
         // Run checks
@@ -101,7 +101,6 @@ export class Serializer<T extends SelfAwareClass> {
             throw new Error(`Possible recursion in serialization, please evaluate ${callees}; ${String(this.type.name)}`);
         callees.push(classSymbol);
 
-        const oMap: { [field: string]: any } = {}
         const sKeys = Object.getOwnPropertyNames(this.model)
         for (const iterator of sKeys) {
             let x = Reflect.getMetadata(SerializerKey, this.type.prototype, iterator)
@@ -110,20 +109,20 @@ export class Serializer<T extends SelfAwareClass> {
                 if (x instanceof Serializable) {
                     this.plugins.forEach(z => z.call(z.onDeserializeValue, [stream, x]));
                     // SerializableValue
-                    oMap[iterator] = x.Read(stream)
-                    // console.log(oMap[key])
+                    result[iterator] = x.Read(stream)
                 } else if (isSerializableClass(x)) {
                     this.plugins.forEach(z => z.call(z.onDeserializeClass, [stream, x]));
                     const sObj = new Serializer(x)
                     // Recurse into child object
-                    oMap[iterator] = sObj._Deserialize(stream, callees)
+                    result[iterator] = sObj._Deserialize(stream, callees)
                 } else {
-                    throw new Error(`${callees.join('/')}/${iterator}: ${x} is not a Serializable object (not ISerializable<any> | SerializableValue)`);
+                    throw new Error(`${callees.join('/')}/${iterator}: ${x} is not a Serializable object (not Serializable<T> | @SerializableClass)`);
                 }
             }
         }
         this.plugins.forEach(x => x.call(x.onDeserializeEnd, [stream]));
-        return plainToClass(this.type, oMap)
+
+        return result
     }
 
     public Serialize(object: T): Buffer {
@@ -132,7 +131,7 @@ export class Serializer<T extends SelfAwareClass> {
 
     public _Serialize(stream: SerialStream, object: T, callees: (symbol | string)[] = []): Buffer {
         // Run checks
-        if (!isSerializableClass(object.constructor)) throw new Error(`${object} isn't Serializable at [${callees}]`)
+        if (!isSerializableClass(object.constructor)) throw new Error(`${object} isn't Serializable at [${callees.map(x => typeof x === 'symbol' ? x.toString() : x)}]`)
 
         this.plugins.forEach(x => x.call(x.onSerializeStart, [stream]));
 
@@ -144,7 +143,6 @@ export class Serializer<T extends SelfAwareClass> {
         const sKeys = Object.getOwnPropertyNames(this.model)
         for (const iterator of sKeys) {
             let x = Reflect.getMetadata(SerializerKey, this.type.prototype, iterator)
-            // console.log(x, iterator)
             if (x) {
                 if (!object.hasOwnProperty(iterator)) throw new Error(`Field ${iterator} doesn't exist on ${(object.constructor as any)._name}`);
                 if (x instanceof Serializable) {
@@ -154,9 +152,9 @@ export class Serializer<T extends SelfAwareClass> {
                 } else if (isSerializableClass(x)) {
                     this.plugins.forEach(z => z.call(z.onSerializeClass, [stream, x]));
                     const serClass = new Serializer(x);
-                    serClass._Serialize(stream, x, callees)
+                    serClass._Serialize(stream, object[iterator], callees)
                 } else {
-                    throw new Error(`${callees.join('/')}/$${iterator}: ${x} is not a Serializable object (not ISerializable<any> | SerializableValue)`);
+                    throw new Error(`${callees.join('/')}/$${iterator}: ${x} is not a Serializable object (not Serializable<T> | @SerializableClass)`);
                 }
             }
         }
