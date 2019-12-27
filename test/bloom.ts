@@ -1,4 +1,4 @@
-import BloomFilter from "../src/misc/bloom";
+import BloomFilter from "tiny-bloomfilter";
 import { forwardmask, fastpopcnt } from "bigint-popcnt";
 
 const oldbloom = require('./oldbloom')

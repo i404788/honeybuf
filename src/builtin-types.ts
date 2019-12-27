@@ -33,13 +33,9 @@ export class Integer extends Serializable<number> {
  * Serializes Integers of arbitrary size using tc39 BigInt
  */
 export class BigInteger extends Serializable<bigint> {
-    get SafeMax() {
-        return this.args.unsigned ? 2n ** BigInt(this.args.bits) : 2n ** BigInt(this.args.bits-1);
-    }
+    SafeMax = this.args.unsigned ? 2n ** BigInt(this.args.bits) : 2n ** BigInt(this.args.bits-1);
 
-    get SafeMin(){
-        return this.args.unsigned ? 0 : -(2n ** BigInt(this.args.bits-1));
-    }
+    SafeMin = this.args.unsigned ? 0 : -(2n ** BigInt(this.args.bits-1));
 
     public constructor(protected args: { bits: number; unsigned?: boolean } = { bits: 256 }) {
         super()
