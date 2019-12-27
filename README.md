@@ -217,9 +217,10 @@ If we want to convert that enum to binary form (without writing out the full str
 
 Writing a new SerializableValue is generally pretty easy simple but there are a few things to consider.
 
-In this example we write a verbose version of our StringEnum, with Versioning. Versioning usually a good thing to add to your type, especially if you expect it to change over time.
+In this example we write a verbose version of our StringEnum, with Versioning. Versioning usually a good thing to add to your type, especially if you expect it to change over time. If versioning is not used by the parent class it will be ignored, so there are no real downsides.
 
 ```
+@ComponentVersion('1.0')
 export class StringEnum extends Serializable<StringEnum> {
     const enumValues = ['value1', 'value2', 'value3']
     public Write(stream: SerialStream, value: StringEnum) {
