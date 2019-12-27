@@ -2,19 +2,13 @@ import { Serializable, Unpacked } from "./serializer";
 import { SerialStream } from "./barestream";
 import { ByteToFloat16, Float16ToByte } from "./misc/float16";
 
-interface Type<T> {
-    new(...args: any[]): T;
-}
-
-interface FunctionType<T> {
-    (...args: any[]): T
-}
-
+interface Type<T> { new(...args: any[]): T; }
+interface FunctionType<T> { (...args: any[]): T }
 const isType = <T>(value: any, type: Type<T> | FunctionType<T>): value is T => {
     return value.constructor === type
 }
 
-/**
+/*
  * Serializes Integers between (exclusive) 2^53 and -2^53 (aka 52-bit IEE754 int).
  */
 export class Integer extends Serializable<number> {
@@ -35,7 +29,7 @@ export class Integer extends Serializable<number> {
     }
 }
 
-/**
+/*
  * Serializes Integers of arbitrary size using tc39 BigInt
  */
 export class BigInteger extends Serializable<bigint> {
@@ -67,7 +61,7 @@ export class BigInteger extends Serializable<bigint> {
     };
 }
 
-/**
+/*
  * Transmits a signle boolean (note: takes up whole byte)
  */
 export class SingleBoolean extends Serializable<boolean> {
@@ -89,7 +83,7 @@ export class SingleBoolean extends Serializable<boolean> {
  * size: 1 + |^log256(n)^| + |^n/8^|
  */
 export class DenseBooleanArray extends Serializable<boolean[]> {
-    public Write(stream: SerialStream, value: boolean[], args?: {}) {
+    public Write(stream: SerialStream, value: boolean[] | boolean, args?: {}) {
         if (typeof value === 'boolean') value = [value];
         stream.WriteVarint(value.length);
         const length = Math.ceil(value.length / 8);
@@ -117,7 +111,7 @@ export class DenseBooleanArray extends Serializable<boolean[]> {
     };
 }
 
-/**
+/*
  * Serializes a variable-length string (utf-8)
  */
 export class CharVector extends Serializable<string> {
@@ -130,7 +124,7 @@ export class CharVector extends Serializable<string> {
     }
 }
 
-/**
+/*
  * Serializes a buffer-like object (ArrayBuffer, SharedBuffer, Buffer, Uint8Array)
  */
 export class BufferLike extends Serializable<ArrayBuffer | SharedArrayBuffer | Buffer | Uint8Array> {
@@ -147,7 +141,7 @@ export class BufferLike extends Serializable<ArrayBuffer | SharedArrayBuffer | B
 
 
 
-/**
+/*
  * (de-)Serializes the value as array of T using varint to document the array length
  * 
  * For byte-like sequences please use the `BufferLike` type

@@ -25,7 +25,6 @@ interface SelfAwareClass {
 
 export function Serialized<S>(s: Serializable<S> | Constructor<S>) {
     return <T>(target: T, propertyKey: string | symbol) => {
-        // TODO: should check `S.constructor == target[propertyKey].constructor`, but is impossible atm
         Reflect.metadata(SerializerKey, s)(target, propertyKey)
     }
 }

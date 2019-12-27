@@ -29,7 +29,6 @@ export function UnversionedID<T extends Constructor<Component>>(obj: T): string 
     return Reflect.getMetadata(ClassKey, obj)
 }
 
-// TODO: unversioned component hash for module identification
 export function VersionedID<T extends Constructor<Component>>(obj: T): string {
     const cname: string = UnversionedID(obj)
     const major: string = Reflect.getMetadata(VersionKey, obj)

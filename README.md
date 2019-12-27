@@ -220,11 +220,12 @@ Varints have the same encoding as bitcoin-core's varints
 
 
 ### Dependencies
-We only use a few dependencies (1.2MB total).
+We only use a few dependencies.
 * External
     * reflect-metadata
     * bigint-buffer
 * Created by us
+    * tiny-bloomfilter
     * xxh3-ts
     * bigint-popcnt
 

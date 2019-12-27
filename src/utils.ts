@@ -20,7 +20,6 @@ export function GetByteLength(bits: number): number {
   return Math.ceil(length)
 }
 
-// Big Endian is possible for potential future compatibility
 export function BigIntToBuffer(value: bigint | number, bits: number): Buffer {
   let bytes: number = GetByteLength(bits);
   if (!((bytes & (bytes - 1)) == 0))
@@ -37,7 +36,6 @@ export function BufferToBigInt(buffer: Buffer, unsigned = false): bigint {
     if (!unsigned) throw new Error('BufferToBigInt(): integer bigint with non-standard byte length is not supported')
     else logger(new LogTrace('warning', `BufferToBigInt(): byteLength not power of 2 but instead ${len} bytes`));
   }
-  // Deserialize
   let value = toBigIntLE(buffer);
   if (!unsigned)
     value = BigInt.asIntN(len * 8, value); // Cast to Int
