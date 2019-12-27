@@ -91,8 +91,6 @@ export class Versioning extends Plugin {
         stream.WriteVarint(hash.byteLength)
         stream.WriteBytes(hash)
     }
-    public onInitialize() {
-    }
 }
 
 import { XXH3_128 } from "xxh3-ts";

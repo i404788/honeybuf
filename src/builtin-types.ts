@@ -176,11 +176,11 @@ export class ReadCast<T extends Serializable<S>, S, R> extends Serializable<R> {
     public constructor(protected type: T, private readCaster: (object: S) => R) {
         super();
     }
-    public Write(stream: SerialStream, value: any, args?: {}) {
-        this.type.Write(stream, value, args)
+    public Write(stream: SerialStream, value: any) {
+        this.type.Write(stream, value)
     };
-    public Read(stream: SerialStream, args?: {}): R {
-        return this.readCaster(this.type.Read(stream, args))
+    public Read(stream: SerialStream): R {
+        return this.readCaster(this.type.Read(stream))
     };
 }
 

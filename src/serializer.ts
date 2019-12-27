@@ -10,8 +10,8 @@ const isSerializableClass = (construct: Function): boolean => {
 }
 
 export abstract class Serializable<T> {
-    abstract Write(stream: SerialStream, value: T, args?: {}): void;
-    abstract Read(stream: SerialStream, args?: {}): T;
+    abstract Write(stream: SerialStream, value: T): void;
+    abstract Read(stream: SerialStream): T;
 }
 
 export function SerializableClass(constructor: Function) {

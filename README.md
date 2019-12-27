@@ -32,6 +32,8 @@ A sweet serializer allowing you to integrate serialization into your classes, wh
 * [Errors](#errors)
     * [Out of bytes](#out-of-bytes)
     * [Integrity check failed](#integrity-check-failed)
+* [Tutorials](#tutorials)
+    * [Writing your own type (SerializableValue)](#writing-your-own-type-serializableValue)
 * [Misc](#misc)
 
 
@@ -197,6 +199,59 @@ Error: Integrity check failed: 312365754742516870814534883039279513871 !== 25561
     at Array.forEach (<anonymous>)
     at Serializer._Deserialize (serializer.js:86:22)
     at Serializer.Deserialize (serializer.js:56:21)
+```
+
+## Tutorials
+### Writing your own type (SerializableValue)
+For examples look in `src/builtin-types.ts`, most are within 20 lines.
+
+For this example, let's say you want to serialize an StringEnum where you use string values as an enum.
+A string enum (in typescript) might look something like:
+```
+type StringEnum = 'value1' | 'value2' | 'value3'
+```
+
+If we want to convert that enum to binary form (without writing out the full string), we need to write a custom `SerializableValue`.
+
+`SerializableValue`s are used to deserialize all non-classes; generally primitive/native javascript types.
+
+Writing a new SerializableValue is generally pretty easy simple but there are a few things to consider.
+
+In this example we write a verbose version of our StringEnum, with Versioning. Versioning usually a good thing to add to your type, especially if you expect it to change over time.
+
+```
+export class StringEnum extends Serializable<StringEnum> {
+    const enumValues = ['value1', 'value2', 'value3']
+    public Write(stream: SerialStream, value: StringEnum) {
+        // Verify that the input is in our enum
+        if (enumValues.includes(value)) {
+            const indexValue = enumValues.indexOf(value)
+            // 8-bit, using a single byte, sub-byte values are not recommended
+            stream.WriteInt(8, indexValue);
+        } else {
+            // Throw an error whenever we *can't* (de-)serialize
+            throw new Error('[StringEnum/Write]: Value not in enum')
+        }
+    };
+    public Read(stream: SerialStream): StringEnum {
+        // Value of `WriteInt` in the Write method
+        // Returned as a BigInt
+        const _val = stream.ReadInt(8, true)
+
+        // Cast to Number so we can use it as an index
+        const index = Number(_val)
+
+        // Retrieve string value from our enum
+        const retvalue = enumValues[index];
+
+        // If value is not within our enum
+        if (!retvalue) {
+            throw new Error('[StringEnum/Read]: Value not in enum')
+        }
+
+        return retvalue;
+    };
+}
 ```
 
 ## Misc
