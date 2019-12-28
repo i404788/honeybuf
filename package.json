@@ -2,8 +2,8 @@
   "name": "honeybuf",
   "version": "1.0.0",
   "main": "dist/index.js",
-  "repository": "https://git.devdroplets.com/devdroplets/binary-serializer-ts",
-  "author": "i404788 <404788@student.fontys.nl>",
+  "repository": "https://github.com/i404788/honeybuf",
+  "author": "Casper <casper+honeybuf@devdroplets.com>",
   "license": "BSD-2-Clause",
   "dependencies": {
     "bigint-buffer": "^1.1.5",
