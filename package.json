@@ -1,7 +1,7 @@
 {
   "name": "honeybuf",
   "version": "1.0.3",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "repository": "https://github.com/i404788/honeybuf",
   "author": "Casper <casper+honeybuf@devdroplets.com>",
   "license": "BSD-2-Clause",
@@ -11,6 +11,10 @@
     "tiny-bloomfilter": "^1.0.1",
     "xxh3-ts": "^1.0.2"
   },
+  "files": [
+    "dist/src/*",
+    "dist/src/misc/*"
+  ],
   "devDependencies": {
     "@types/node": "^12.12.21"
   },
