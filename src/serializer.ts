@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import { SerialStream, ReadWriteMode } from "./barestream";
+import { Constructor, StrictConstructor } from "./misc/tstools";
 
 export const SerializerKey = Symbol('SerializerType')
 const PluginKey = Symbol('Plugins')

@@ -3,6 +3,7 @@
  * If the version changes you will thus be able to detect which component it (likely) is.
 */
 import "reflect-metadata";
+import { Constructor } from "./tstools";
 
 export interface Component { 
     constructor: any

@@ -33,6 +33,7 @@ import BloomFilter from "tiny-bloomfilter";
 }
 
 import { SerializableClass, Serialized, Serializer, AddPlugin, Integer, CharVector, plugins } from "../src";
+import { Constructor } from "../src/misc/tstools";
 const { Versioning, VersioningFlags } = plugins;
 
 {
