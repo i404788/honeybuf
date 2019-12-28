@@ -1,11 +1,10 @@
 import "reflect-metadata";
 import { SerialStream, ReadWriteMode } from "./barestream";
 
-export const SerializerKey = Symbol('SerializerType')
-export const SelfSerialized = Symbol('SerializedClass')
-export const PluginKey = Symbol('Plugins')
+const SerializerKey = Symbol('SerializerType')
+const PluginKey = Symbol('Plugins')
 
-const isSerializableClass = (construct: Function): boolean => {
+export const isSerializableClass = (construct: Function): boolean => {
     return Reflect.getMetadata(SerializerKey, construct)
 }
 
