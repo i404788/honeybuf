@@ -4,8 +4,7 @@
   "main": "dist/index.js",
   "repository": "https://git.devdroplets.com/devdroplets/binary-serializer-ts",
   "author": "i404788 <404788@student.fontys.nl>",
-  "license": "MIT",
-  "private": true,
+  "license": "BSD-2-Clause",
   "dependencies": {
     "bigint-buffer": "^1.1.5",
     "reflect-metadata": "^0.1.13",
@@ -14,5 +13,13 @@
   },
   "devDependencies": {
     "@types/node": "^12.12.21"
-  }
+  },
+  "keywords": [
+    "typescript",
+    "honeybuf",
+    "serialization",
+    "protobuf",
+    "binary",
+    "class"
+  ]
 }

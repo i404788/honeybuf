@@ -93,6 +93,7 @@ export class Versioning extends Plugin {
     }
 }
 
+// TODO: optimize xxh3
 import { XXH3_128 } from "xxh3-ts";
 export class Integrity extends Plugin {
     constructor(private bytes: 1 | 2 | 4 | 8 | 16 = 4){
