@@ -53,7 +53,7 @@ export class Versioning extends Plugin {
         const ids = this.getIDs(components)
         ids.map(x => filter.add(x))
 
-        console.log(filter.filter.toString(2), rfilter.filter.toString(2))
+        // console.log(filter.filter.toString(2), rfilter.filter.toString(2))
 
         // Check bloom filter for equality
         const res = filter.compare(rfilter)
