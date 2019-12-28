@@ -1,5 +1,5 @@
 # Honeybuf
-A sweet serializer allowing you to integrate serialization into your classes, while having protobuf-like control.
+A sweet typescript serializer allowing you to integrate serialization into your classes, while having protobuf-like control.
 
 ## Features
 * Built-in types
