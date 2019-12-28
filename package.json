@@ -1,6 +1,6 @@
 {
   "name": "honeybuf",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "main": "dist/src/index.js",
   "repository": "https://github.com/i404788/honeybuf",
   "author": "Casper <casper+honeybuf@devdroplets.com>",
