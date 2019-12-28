@@ -11,6 +11,9 @@
     "tiny-bloomfilter": "^1.0.1",
     "xxh3-ts": "^1.0.2"
   },
+  "scripts": {
+    "prepack": "yarn exec tsc"
+  },
   "files": [
     "dist/src/*",
     "dist/src/misc/*"
