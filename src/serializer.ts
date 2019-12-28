@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { SerialStream, ReadWriteMode } from "./barestream";
 
-const SerializerKey = Symbol('SerializerType')
+export const SerializerKey = Symbol('SerializerType')
 const PluginKey = Symbol('Plugins')
 
 export const isSerializableClass = (construct: Function): boolean => {
@@ -65,17 +65,16 @@ export class Serializer<T extends SelfAwareClass> {
     protected plugins: Plugin[] = []
 
     public constructor(private type: Constructor<T>) {
+        if (!isSerializableClass(type))
+            throw new Error(`Type ${
+                String(this.type.name)
+                } doesn't implement SerializableClass`);
+
         let pluginTypes: PluginCollection = Reflect.getMetadata(PluginKey, this.type);
         if (pluginTypes)
             this.plugins = pluginTypes.map(x => new x[0](...x[1]))
 
         this.plugins.forEach(x => x.call(x.onInitialize, [this, this.type, this.model]));
-
-
-        if (!isSerializableClass(type))
-            throw new Error(`Type ${
-                String(this.type.name)
-                } doesn't implement SerializableClass`);
     }
 
     public Deserialize(stream: Buffer): T {

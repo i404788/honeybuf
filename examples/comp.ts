@@ -69,7 +69,7 @@ const { Versioning, VersioningFlags } = plugins;
     // Fault injection 1: Post-serialization corruption
     // Note: might not trigger all components are distribution is random
     //  Change n in `..length-n` higher to trigger more
-    z.fill(0, z.byteLength-2)
+    z[1] = 0; z[2] = 0
 
     // Fault injection 2: Version incompatibility
     // Reflect.metadata(VersionKey, 'bcd')(int)

@@ -1,4 +1,4 @@
-import { Plugin, Serializable, AddPlugin } from "./serializer";
+import { Plugin, Serializable, Serializer, SerializerKey, isSerializableClass } from "./serializer";
 import { SerialStream } from "./barestream";
 import { Component, isComponent, VersionedID, UnversionedID } from "./misc/comphash";
 import BloomFilter, { FilterComparison } from "tiny-bloomfilter";
@@ -28,26 +28,32 @@ export class Versioning extends Plugin {
             return r
         })
     }
+    public onInitialize<T>(ref: Serializer<T>, type: Constructor<T>, model: T){
+        this.components.clear()
+        // Go through all components so we can prepend/compare a hash
+        const sKeys = Object.getOwnPropertyNames(model)
+        for (const key of sKeys) {
+            let x = Reflect.getMetadata(SerializerKey, type.prototype, key)
+            if (x) {
+                if ((x instanceof Serializable || isSerializableClass(x)) && isComponent(x))
+                    this.components.add((x as any).constructor)
+            }
+        }
+    }
 
-    public onDeserializeStart(stream: SerialStream): void { this.components.clear() }
-    public onDeserializeClass(stream: SerialStream, obj: any): void {
-        if (isComponent(obj))
-            this.components.add(obj.constructor)
-    }
-    public onDeserializeValue(stream: SerialStream, obj: Serializable<any>): void {
-        if (isComponent(obj))
-            this.components.add((obj as any).constructor)
-    }
-    public onDeserializeEnd(stream: SerialStream): void {
+    public onDeserializeStart(stream: SerialStream): void {
         const len = stream.ReadVarint()
         const rhash = stream.ReadBytes(Number(len))
 
-        const filter = BloomFilter.fromBuffer(rhash)
-        const rfilter = new BloomFilter(filter.bits, filter.k)
+        const rfilter = BloomFilter.fromBuffer(rhash)
+        if (rfilter.bits === 0 || rfilter.k === 0) throw new Error ('[Plugins/CompHash]: Hash was corrupted (-254)')
+        const filter = new BloomFilter(rfilter.bits, rfilter.k)
 
         let components = Array.from(this.components)
         const ids = this.getIDs(components)
-        ids.map(x => rfilter.add(x))
+        ids.map(x => filter.add(x))
+
+        console.log(filter.filter.toString(2), rfilter.filter.toString(2))
 
         // Check bloom filter for equality
         const res = filter.compare(rfilter)
@@ -57,9 +63,9 @@ export class Versioning extends Plugin {
             let diff = []
             for (const item of this.components) {
                 // Check and add to diff
-                if (this.flags & VersioningFlags.Versioned && !filter.test(VersionedID(item)))
+                if ((this.flags & VersioningFlags.Versioned) && !rfilter.test(VersionedID(item)))
                     diff.push(VersionedID(item))
-                if (this.flags & VersioningFlags.Unversioned && !filter.test(UnversionedID(item)))
+                if ((this.flags & VersioningFlags.Unversioned) && !rfilter.test(UnversionedID(item)))
                     diff.push(UnversionedID(item))
             }
             // Log
@@ -74,16 +80,7 @@ export class Versioning extends Plugin {
         }
         logger(new LogTrace('verbose', '[Plugins/CompHash]: sucess ${res}'))
     }
-    public onSerializeStart(stream: SerialStream): void { this.components.clear() }
-    public onSerializeClass(stream: SerialStream, obj: any): void {
-        if (isComponent(obj))
-            this.components.add(obj.constructor)
-    }
-    public onSerializeValue(stream: SerialStream, obj: Serializable<any>): void {
-        if (isComponent(obj))
-            this.components.add((obj as Component).constructor)
-    }
-    public onSerializeEnd(stream: SerialStream): void {
+    public onSerializeStart(stream: SerialStream): void {
         const components = Array.from(this.components)
         const ids = this.getIDs(components)
         const bfilter = BloomFilter.fromCollection(ids)
