@@ -1,6 +1,6 @@
 {
   "name": "honeybuf",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "dist/index.js",
   "repository": "https://github.com/i404788/honeybuf",
   "author": "Casper <casper+honeybuf@devdroplets.com>",
@@ -8,7 +8,7 @@
   "dependencies": {
     "bigint-buffer": "^1.1.5",
     "reflect-metadata": "^0.1.13",
-    "tiny-bloomfilter":"^1.0.1",
+    "tiny-bloomfilter": "^1.0.1",
     "xxh3-ts": "^1.0.2"
   },
   "devDependencies": {
